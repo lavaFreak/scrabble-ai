@@ -37,3 +37,9 @@ nbdist/
 
 # Nested cloned repo (do not track in this repo)
 src/project-3-part-1-scorer-lavaFreak/
+
+# Local assignment prompt
+prompt3.pdf
+
+# Temporary local tooling
+.tmp-pdfenv/
