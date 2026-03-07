@@ -43,3 +43,19 @@ prompt3.pdf
 
 # Temporary local tooling
 .tmp-pdfenv/
+
+# Python local env
+.venv/
+
+# Local archive drops
+*.zip
+
+# Generated grader/test outputs
+test_results/
+
+# Keep committed resource dictionaries and configs
+!Resources/
+!Resources/dictionaries/
+!Resources/dictionaries/*.txt
+!Resources/config/
+!Resources/config/*.txt

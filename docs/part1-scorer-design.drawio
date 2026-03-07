@@ -1,0 +1,98 @@
+<mxfile host="app.diagrams.net" modified="2026-03-05T00:00:00.000Z" agent="Codex" version="24.7.17" editor="draw.io">
+  <diagram id="part1-scorer" name="Part1 Scorer Design">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Scrabble Part 1 (Scorechecker) - Design" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="20" width="560" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cli" value="Scorechecker CLI&#xa;java -jar Scorechecker.jar &lt;dictionary&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="240" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="parser" value="InputParser&#xa;- read board size&#xa;- read original board&#xa;- read result board&#xa;- loop until EOF" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="340" y="90" width="260" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="board" value="Board Model&#xa;- Square[][]&#xa;- letter/blank state&#xa;- premium metadata" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="70" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="move" value="MoveExtractor&#xa;diff(original, result)&#xa;- placed tiles&#xa;- orientation&#xa;- coordinate list" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="190" width="220" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legal" value="LegalityChecker&#xa;- contiguous placement&#xa;- no overwrites&#xa;- touches existing tiles (except first move)&#xa;- all formed words in dictionary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="970" y="90" width="270" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="dict" value="Dictionary&#xa;- load once from CLI arg&#xa;- normalize case&#xa;- fast lookup (HashSet / Trie)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="90" width="230" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="score" value="ScoringEngine&#xa;- base letter scores&#xa;- apply letter multipliers for new tiles&#xa;- apply word multipliers&#xa;- sum all formed words" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="970" y="260" width="270" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="config" value="ScoringConfig&#xa;- tile points&#xa;- premium square rules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="280" width="230" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="result" value="PlayResult&#xa;- played tiles string&#xa;- legal / illegal&#xa;- score (if legal)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="680" y="350" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="output" value="OutputFormatter&#xa;- print original board&#xa;- print result board&#xa;- print move details&#xa;- print legality + score" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="340" y="340" width="260" height="110" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="note" value="Part 1 requirement: exact output formatting and multiple test cases until EOF" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="370" width="240" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="cli" target="parser">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="parser" target="board">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="board" target="move">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="move" target="legal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="dict" target="legal">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="move" target="score">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="board" target="score">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="config" target="score">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="if legal" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="legal" target="score">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="legal" target="result">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="score" target="result">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e12" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="result" target="output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13" style="endArrow=block;html=1;rounded=0;" edge="1" parent="1" source="output" target="cli">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
