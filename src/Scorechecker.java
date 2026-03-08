@@ -37,7 +37,12 @@ public class Scorechecker {
 
             printBoard("original board:", original);
             printBoard("result board:", result);
-            System.out.println(formatPlay(original, result));
+            String incompatibility = findIncompatibility(original, result);
+            if (incompatibility != null) {
+                System.out.println("Incompatible boards: " + incompatibility);
+            } else {
+                System.out.println(formatPlay(original, result));
+            }
         }
     }
 
@@ -80,6 +85,33 @@ public class Scorechecker {
             }
         }
         return played;
+    }
+
+    private static String findIncompatibility(Board original, Board result) {
+        if (original.size() != result.size()) {
+            return "board size mismatch";
+        }
+
+        for (int r = 0; r < original.size(); r++) {
+            for (int c = 0; c < original.size(); c++) {
+                boolean originalTile = original.isTile(r, c);
+                boolean resultTile = result.isTile(r, c);
+
+                if (originalTile && !resultTile) {
+                    return "tile removed at (" + r + ", " + c + ")";
+                }
+
+                if (originalTile && resultTile && original.tileAt(r, c) != result.tileAt(r, c)) {
+                    return "tile changed at (" + r + ", " + c + ")";
+                }
+
+                if (!originalTile && !resultTile && !original.get(r, c).equals(result.get(r, c))) {
+                    return "multiplier mismatch at (" + r + ", " + c + ")";
+                }
+            }
+        }
+
+        return null;
     }
 
     private static class PlayedTile {

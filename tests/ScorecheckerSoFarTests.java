@@ -14,6 +14,7 @@ public class ScorecheckerSoFarTests {
         testBoardParserReadsMultipleBoards();
         testScorecheckerPrintsExpectedPlayLinesSoFar();
         testScorecheckerPrintsCaseBreaks();
+        testScorecheckerPrintsIncompatibleBoardMessages();
 
         System.out.println("All tests passed.");
     }
@@ -57,6 +58,16 @@ public class ScorecheckerSoFarTests {
 
         check(output.startsWith("original board:"), "Output should start with original board label");
         check(output.contains("\n\noriginal board:\n"), "Expected blank line between cases");
+    }
+
+    private static void testScorecheckerPrintsIncompatibleBoardMessages() throws Exception {
+        String input = Files.readString(Path.of("Resources/examples/example_score_input.txt"));
+        String output = runScorechecker(input);
+
+        check(output.contains("Incompatible boards: multiplier mismatch at (0, 7)"),
+            "Expected multiplier mismatch incompatibility message");
+        check(output.contains("Incompatible boards: tile removed at (3, 14)"),
+            "Expected tile removed incompatibility message");
     }
 
     private static String runScorechecker(String stdinText) throws Exception {
