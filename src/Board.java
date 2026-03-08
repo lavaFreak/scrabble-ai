@@ -35,12 +35,24 @@ public class Board {
     }
 
     public String rowString(int row) {
+        return rowString(row, false);
+    }
+
+    public String rowStringPadded(int row) {
+        return rowString(row, true);
+    }
+
+    private String rowString(int row, boolean padSingleCharTokens) {
         StringBuilder sb = new StringBuilder();
         for (int c = 0; c < size; c++) {
             if (c > 0) {
                 sb.append(' ');
             }
-            sb.append(tokens[row][c]);
+            String token = tokens[row][c];
+            if (padSingleCharTokens && token.length() == 1) {
+                sb.append(' ');
+            }
+            sb.append(token);
         }
         return sb.toString();
     }

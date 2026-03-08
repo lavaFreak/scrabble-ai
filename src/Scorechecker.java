@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Scorechecker {
 
@@ -15,6 +17,7 @@ public class Scorechecker {
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         BoardParser parser = new BoardParser();
+        boolean firstCase = true;
 
         while (true) {
             Board original = parser.readBoard(in);
@@ -27,15 +30,67 @@ public class Scorechecker {
                 break;
             }
 
+            if (!firstCase) {
+                System.out.println();
+            }
+            firstCase = false;
+
             printBoard("original board:", original);
             printBoard("result board:", result);
+            System.out.println(formatPlay(original, result));
         }
     }
 
     private static void printBoard(String label, Board board) {
         System.out.println(label);
         for (int r = 0; r < board.size(); r++) {
-            System.out.println(board.rowString(r));
+            System.out.println(board.rowStringPadded(r));
+        }
+    }
+
+    private static String formatPlay(Board original, Board result) {
+        List<PlayedTile> played = collectNewTiles(original, result);
+        if (played.isEmpty()) {
+            return "play is empty";
+        }
+
+        StringBuilder sb = new StringBuilder("play is ");
+        for (int i = 0; i < played.size(); i++) {
+            PlayedTile tile = played.get(i);
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(tile.letter)
+              .append(" at (")
+              .append(tile.row)
+              .append(", ")
+              .append(tile.col)
+              .append(")");
+        }
+        return sb.toString();
+    }
+
+    private static List<PlayedTile> collectNewTiles(Board original, Board result) {
+        List<PlayedTile> played = new ArrayList<>();
+        for (int r = 0; r < original.size(); r++) {
+            for (int c = 0; c < original.size(); c++) {
+                if (!original.isTile(r, c) && result.isTile(r, c)) {
+                    played.add(new PlayedTile(result.tileAt(r, c), r, c));
+                }
+            }
+        }
+        return played;
+    }
+
+    private static class PlayedTile {
+        private final char letter;
+        private final int row;
+        private final int col;
+
+        private PlayedTile(char letter, int row, int col) {
+            this.letter = letter;
+            this.row = row;
+            this.col = col;
         }
     }
 }
