@@ -14,18 +14,28 @@ public class Scorechecker {
         // TODO: Load dictionary from dictionaryPath.
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        BoardParser parser = new BoardParser();
 
         while (true) {
-            // TODO: Read one scorer test case:
-            // 1) original board
-            // 2) result board
-            // Stop at EOF.
-            String firstLine = in.readLine();
-            if (firstLine == null) {
+            Board original = parser.readBoard(in);
+            if (original == null) {
                 break;
             }
 
-            // TODO: Parse and process the case, then print exact required output.
+            Board result = parser.readBoard(in);
+            if (result == null) {
+                break;
+            }
+
+            printBoard("original board:", original);
+            printBoard("result board:", result);
+        }
+    }
+
+    private static void printBoard(String label, Board board) {
+        System.out.println(label);
+        for (int r = 0; r < board.size(); r++) {
+            System.out.println(board.rowString(r));
         }
     }
 }
