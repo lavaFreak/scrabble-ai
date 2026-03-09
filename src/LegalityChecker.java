@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: validate move legality for scorer Part 1.
+ */
 import java.util.List;
 
 public class LegalityChecker {
@@ -26,7 +31,7 @@ public class LegalityChecker {
             int center = original.size() / 2;
             boolean coversCenter = false;
             for (PlayedTile tile : played) {
-                if (tile.row == center && tile.col == center) {
+                if (tile.row() == center && tile.col() == center) {
                     coversCenter = true;
                     break;
                 }
@@ -52,9 +57,9 @@ public class LegalityChecker {
     }
 
     private boolean allSameRow(List<PlayedTile> played) {
-        int row = played.get(0).row;
+        int row = played.get(0).row();
         for (PlayedTile tile : played) {
-            if (tile.row != row) {
+            if (tile.row() != row) {
                 return false;
             }
         }
@@ -62,9 +67,9 @@ public class LegalityChecker {
     }
 
     private boolean allSameCol(List<PlayedTile> played) {
-        int col = played.get(0).col;
+        int col = played.get(0).col();
         for (PlayedTile tile : played) {
-            if (tile.col != col) {
+            if (tile.col() != col) {
                 return false;
             }
         }
@@ -77,12 +82,12 @@ public class LegalityChecker {
         }
 
         if (sameRow) {
-            int row = played.get(0).row;
+            int row = played.get(0).row();
             int minCol = Integer.MAX_VALUE;
             int maxCol = Integer.MIN_VALUE;
             for (PlayedTile tile : played) {
-                minCol = Math.min(minCol, tile.col);
-                maxCol = Math.max(maxCol, tile.col);
+                minCol = Math.min(minCol, tile.col());
+                maxCol = Math.max(maxCol, tile.col());
             }
             for (int c = minCol; c <= maxCol; c++) {
                 if (!result.isTile(row, c)) {
@@ -92,12 +97,12 @@ public class LegalityChecker {
             return true;
         }
 
-        int col = played.get(0).col;
+        int col = played.get(0).col();
         int minRow = Integer.MAX_VALUE;
         int maxRow = Integer.MIN_VALUE;
         for (PlayedTile tile : played) {
-            minRow = Math.min(minRow, tile.row);
-            maxRow = Math.max(maxRow, tile.row);
+            minRow = Math.min(minRow, tile.row());
+            maxRow = Math.max(maxRow, tile.row());
         }
         for (int r = minRow; r <= maxRow; r++) {
             if (!result.isTile(r, col)) {
@@ -109,8 +114,8 @@ public class LegalityChecker {
 
     private boolean touchesExistingTile(Board original, List<PlayedTile> played) {
         for (PlayedTile tile : played) {
-            int r = tile.row;
-            int c = tile.col;
+            int r = tile.row();
+            int c = tile.col();
             if (isOriginalTileAt(original, r - 1, c)
                 || isOriginalTileAt(original, r + 1, c)
                 || isOriginalTileAt(original, r, c - 1)

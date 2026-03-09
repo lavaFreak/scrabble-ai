@@ -1,3 +1,10 @@
+/**
+ * Author: Garion
+ *
+ * Validates that a result board is compatible with an original board before
+ * any move legality/scoring logic is applied.
+ * Use this check as the first gate before move extraction or legality tests.
+ */
 public class CompatibilityChecker {
 
     public String findIncompatibility(Board original, Board result) {

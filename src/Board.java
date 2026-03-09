@@ -1,3 +1,12 @@
+/**
+ * Author: Garion
+ *
+ * Immutable board view for scorer logic.
+ *
+ * Tokens preserve the input format for each square (multiplier or tile token),
+ * while helper methods expose tile and multiplier semantics.
+ * Use this class as the source of truth for board queries in parsing, legality, and scoring.
+ */
 import java.util.ArrayList;
 import java.util.List;
 

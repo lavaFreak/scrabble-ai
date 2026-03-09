@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: extract and format newly played tiles between board states.
+ */
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,11 +31,11 @@ public class MoveExtractor {
             if (i > 0) {
                 sb.append(", ");
             }
-            sb.append(tile.letter)
+            sb.append(tile.letter())
                 .append(" at (")
-                .append(tile.row)
+                .append(tile.row())
                 .append(", ")
-                .append(tile.col)
+                .append(tile.col())
                 .append(")");
         }
         return sb.toString();

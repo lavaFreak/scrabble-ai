@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: regression coverage for scorer Part 1 behavior.
+ */
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,6 +24,10 @@ public class ScorecheckerSoFarTests {
         testScorecheckerPrintsLegalAndIllegalLines();
         testScoreLinesForKnownCases();
         testRiskCasesWithSyntheticBoards();
+        testCompatibilitySizeMismatch();
+        testMoveExtractorOrdering();
+        testScorerBranchCoverage();
+        testClassProvidedScoreAndIllegalFiles();
 
         System.out.println("All tests passed.");
     }
@@ -244,6 +253,165 @@ public class ScorecheckerSoFarTests {
             "Expected DOGS score to be 48");
     }
 
+    private static void testCompatibilitySizeMismatch() {
+        Board original = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. .. ..",
+            ".. .. .."
+        });
+        Board result = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+
+        CompatibilityChecker checker = new CompatibilityChecker();
+        String mismatch = checker.findIncompatibility(original, result);
+        check("board size mismatch".equals(mismatch), "Expected board size mismatch branch");
+    }
+
+    private static void testMoveExtractorOrdering() {
+        Board original = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        Board result = boardFromRows(new String[] {
+            ".. b .. .. ..",
+            ".. .. .. c ..",
+            ".. .. a .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+
+        MoveExtractor extractor = new MoveExtractor();
+        List<PlayedTile> played = extractor.collectNewTiles(original, result);
+        check(played.size() == 3, "Expected 3 played tiles");
+        check(played.get(0).row() == 0 && played.get(0).col() == 1 && played.get(0).letter() == 'b',
+            "Expected row-major first tile");
+        check(played.get(1).row() == 1 && played.get(1).col() == 3 && played.get(1).letter() == 'c',
+            "Expected row-major second tile");
+        check(played.get(2).row() == 2 && played.get(2).col() == 2 && played.get(2).letter() == 'a',
+            "Expected row-major third tile");
+    }
+
+    private static void testScorerBranchCoverage() {
+        MoveExtractor extractor = new MoveExtractor();
+        WordFinder finder = new WordFinder();
+        Scorer scorer = new Scorer();
+
+        // Letter multiplier branch.
+        Board originalLetterMult = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .2 .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        Board resultLetterMult = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. a t ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        int scoreLetterMult = scoreFor(originalLetterMult, resultLetterMult, extractor, finder, scorer);
+        check(scoreLetterMult == 3, "Expected letter-multiplier score 3");
+
+        // Word multiplier branch.
+        Board originalWordMult = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. 2. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        Board resultWordMult = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. a t ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        int scoreWordMult = scoreFor(originalWordMult, resultWordMult, extractor, finder, scorer);
+        check(scoreWordMult == 4, "Expected word-multiplier score 4");
+
+        // Blank tile branch.
+        Board originalBlank = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        Board resultBlank = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. A t ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        int scoreBlank = scoreFor(originalBlank, resultBlank, extractor, finder, scorer);
+        check(scoreBlank == 1, "Expected blank-tile score 1");
+
+        // Multiple words with shared newly-played tile and letter multiplier on that tile.
+        Board originalCross = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. c .. ..",
+            ".. d .2 g ..",
+            ".. .. t .. ..",
+            ".. .. .. .. .."
+        });
+        Board resultCross = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. c .. ..",
+            ".. d o g ..",
+            ".. .. t .. ..",
+            ".. .. .. .. .."
+        });
+        int scoreCross = scoreFor(originalCross, resultCross, extractor, finder, scorer);
+        check(scoreCross == 12, "Expected cross-word combined score 12");
+
+        // Bingo branch (+50).
+        Board originalBingo = boardFromRows(new String[] {
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. .."
+        });
+        Board resultBingo = boardFromRows(new String[] {
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            "a a a a a a a",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. ..",
+            ".. .. .. .. .. .. .."
+        });
+        int scoreBingo = scoreFor(originalBingo, resultBingo, extractor, finder, scorer);
+        check(scoreBingo == 57, "Expected bingo score 57");
+    }
+
+    private static void testClassProvidedScoreAndIllegalFiles() throws Exception {
+        String scoreInput = Files.readString(Path.of("Resources/examples/score.txt"));
+        String scoreOutput = runScorechecker(scoreInput, "Resources/dictionaries/dictionary.txt");
+        check(!scoreOutput.contains("Incompatible boards:"), "score.txt should not contain incompatible boards");
+        check(!scoreOutput.contains("play is not legal"), "score.txt should contain only legal plays");
+        check(scoreOutput.contains("score is "), "score.txt should include scoring output");
+
+        String illegalInput = Files.readString(Path.of("Resources/examples/illegal.txt"));
+        String illegalOutput = runScorechecker(illegalInput, "Resources/dictionaries/dictionary.txt");
+        check(!illegalOutput.contains("play is legal"), "illegal.txt should not contain legal plays");
+        check(!illegalOutput.contains("score is "), "illegal.txt should not include scoring output");
+    }
+
     private static String runScorechecker(String stdinText) throws Exception {
         return runScorechecker(stdinText, "Resources/dictionaries/animals.txt");
     }
@@ -304,5 +472,30 @@ public class ScorecheckerSoFarTests {
             sb.append(row).append('\n');
         }
         return sb.toString();
+    }
+
+    private static Board boardFromRows(String[] rows) {
+        int size = rows.length;
+        String[][] tokens = new String[size][size];
+        for (int r = 0; r < size; r++) {
+            String[] parts = rows[r].trim().split("\\s+");
+            if (parts.length != size) {
+                throw new IllegalArgumentException("Invalid row width for synthetic board at row " + r);
+            }
+            System.arraycopy(parts, 0, tokens[r], 0, size);
+        }
+        return new Board(size, tokens);
+    }
+
+    private static int scoreFor(
+        Board original,
+        Board result,
+        MoveExtractor extractor,
+        WordFinder finder,
+        Scorer scorer
+    ) {
+        List<PlayedTile> played = extractor.collectNewTiles(original, result);
+        List<WordPlacement> words = finder.collectFormedWordPlacements(result, played);
+        return scorer.computeScore(original, result, played, words);
     }
 }

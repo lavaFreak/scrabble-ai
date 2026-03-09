@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: provide case-insensitive dictionary loading and lookups.
+ */
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

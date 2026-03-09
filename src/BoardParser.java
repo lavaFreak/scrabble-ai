@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: parse scorer board snapshots from text input.
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 

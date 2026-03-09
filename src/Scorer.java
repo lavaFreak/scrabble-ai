@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: compute legal move scores for scorer Part 1.
+ */
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -7,7 +12,7 @@ public class Scorer {
     public int computeScore(Board original, Board result, List<PlayedTile> played, List<WordPlacement> words) {
         Set<String> newlyPlayed = new HashSet<>();
         for (PlayedTile tile : played) {
-            newlyPlayed.add(coordKey(tile.row, tile.col));
+            newlyPlayed.add(coordKey(tile.row(), tile.col()));
         }
 
         int total = 0;

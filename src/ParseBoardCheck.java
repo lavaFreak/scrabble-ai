@@ -1,12 +1,12 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: local utility for validating board parsing behavior.
+ */
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-/**
- * Local parsing sanity check tool.
- * Usage:
- *   java ParseBoardCheck <input-file>
- */
 public class ParseBoardCheck {
 
     public static void main(String[] args) throws IOException {

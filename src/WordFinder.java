@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: discover unique words formed by newly placed tiles.
+ */
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -9,12 +14,12 @@ public class WordFinder {
         Set<String> seen = new LinkedHashSet<>();
         List<WordPlacement> words = new ArrayList<>();
         for (PlayedTile tile : played) {
-            WordPlacement horizontal = horizontalWordPlacement(result, tile.row, tile.col);
+            WordPlacement horizontal = horizontalWordPlacement(result, tile.row(), tile.col());
             if (horizontal.length() >= 2 && seen.add(horizontal.key())) {
                 words.add(horizontal);
             }
 
-            WordPlacement vertical = verticalWordPlacement(result, tile.row, tile.col);
+            WordPlacement vertical = verticalWordPlacement(result, tile.row(), tile.col());
             if (vertical.length() >= 2 && seen.add(vertical.key())) {
                 words.add(vertical);
             }

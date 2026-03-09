@@ -1,3 +1,12 @@
+/**
+ * Author: Garion
+ *
+ * Coordinate span for a single formed word on the board.
+ *
+ * A placement is represented as either horizontal (fixed row, varying columns)
+ * or vertical (fixed column, varying rows).
+ * Use this class as a reusable word geometry descriptor across legality and scoring.
+ */
 public class WordPlacement {
     private final boolean horizontal;
     private final int fixed;

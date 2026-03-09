@@ -1,3 +1,8 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: scorer program entry point and output orchestration.
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
