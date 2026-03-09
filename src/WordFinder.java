@@ -10,6 +10,13 @@ import java.util.Set;
 
 public class WordFinder {
 
+    /**
+     * Collects all unique words formed by the new tiles.
+     *
+     * @param result board after move
+     * @param played newly placed tiles
+     * @return unique word placements of length >= 2
+     */
     public List<WordPlacement> collectFormedWordPlacements(Board result, List<PlayedTile> played) {
         Set<String> seen = new LinkedHashSet<>();
         List<WordPlacement> words = new ArrayList<>();
@@ -27,6 +34,7 @@ public class WordFinder {
         return words;
     }
 
+    // Finds horizontal word span through a coordinate.
     private WordPlacement horizontalWordPlacement(Board board, int row, int col) {
         int start = col;
         while (start - 1 >= 0 && board.isTile(row, start - 1)) {
@@ -39,6 +47,7 @@ public class WordFinder {
         return new WordPlacement(true, row, start, end);
     }
 
+    // Finds vertical word span through a coordinate.
     private WordPlacement verticalWordPlacement(Board board, int row, int col) {
         int start = row;
         while (start - 1 >= 0 && board.isTile(start - 1, col)) {

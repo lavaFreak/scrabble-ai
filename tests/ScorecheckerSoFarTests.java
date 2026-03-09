@@ -16,6 +16,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class ScorecheckerSoFarTests {
+    /**
+     * Executes the full scorer regression suite.
+     *
+     * @param args unused
+     * @throws Exception if any test setup/runtime issue occurs
+     */
     public static void main(String[] args) throws Exception {
         testBoardParserReadsMultipleBoards();
         testScorecheckerPrintsExpectedPlayLinesSoFar();

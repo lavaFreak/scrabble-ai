@@ -8,6 +8,13 @@ import java.util.List;
 
 public class MoveExtractor {
 
+    /**
+     * Collects new tiles from original->result transition.
+     *
+     * @param original board before move
+     * @param result board after move
+     * @return played tiles in row-major order
+     */
     public List<PlayedTile> collectNewTiles(Board original, Board result) {
         List<PlayedTile> played = new ArrayList<>();
         for (int r = 0; r < original.size(); r++) {
@@ -20,6 +27,12 @@ public class MoveExtractor {
         return played;
     }
 
+    /**
+     * Formats required "play is ..." output from played tiles.
+     *
+     * @param played played tiles
+     * @return formatted play output line
+     */
     public String formatPlay(List<PlayedTile> played) {
         if (played.isEmpty()) {
             return "play is empty";

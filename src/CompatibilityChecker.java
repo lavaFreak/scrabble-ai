@@ -7,6 +7,13 @@
  */
 public class CompatibilityChecker {
 
+    /**
+     * Returns first incompatibility message between original and result boards.
+     *
+     * @param original board before move
+     * @param result board after move
+     * @return incompatibility description, or null when compatible
+     */
     public String findIncompatibility(Board original, Board result) {
         if (original.size() != result.size()) {
             return "board size mismatch";

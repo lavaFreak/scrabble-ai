@@ -8,10 +8,24 @@ import java.util.List;
 public class LegalityChecker {
     private final Dictionary dictionary;
 
+    /**
+     * Creates legality checker with dictionary backing.
+     *
+     * @param dictionary dictionary used for formed-word validation
+     */
     public LegalityChecker(Dictionary dictionary) {
         this.dictionary = dictionary;
     }
 
+    /**
+     * Evaluates move legality for Part 1 scorer rules.
+     *
+     * @param original board before move
+     * @param result board after move
+     * @param played newly placed tiles
+     * @param words words formed by the move
+     * @return true when move is legal
+     */
     public boolean isLegalMove(Board original, Board result, List<PlayedTile> played, List<WordPlacement> words) {
         if (played.isEmpty()) {
             return false;
@@ -56,6 +70,7 @@ public class LegalityChecker {
         return true;
     }
 
+    // Checks one-line placement constraint (all tiles in one row).
     private boolean allSameRow(List<PlayedTile> played) {
         int row = played.get(0).row();
         for (PlayedTile tile : played) {
@@ -66,6 +81,7 @@ public class LegalityChecker {
         return true;
     }
 
+    // Checks one-line placement constraint (all tiles in one column).
     private boolean allSameCol(List<PlayedTile> played) {
         int col = played.get(0).col();
         for (PlayedTile tile : played) {
@@ -76,6 +92,7 @@ public class LegalityChecker {
         return true;
     }
 
+    // Ensures no holes along the played line after move application.
     private boolean isContiguousOnLine(Board result, List<PlayedTile> played, boolean sameRow) {
         if (played.size() <= 1) {
             return true;
@@ -112,6 +129,7 @@ public class LegalityChecker {
         return true;
     }
 
+    // Requires adjacency to existing board tiles after first move.
     private boolean touchesExistingTile(Board original, List<PlayedTile> played) {
         for (PlayedTile tile : played) {
             int r = tile.row();
@@ -126,6 +144,7 @@ public class LegalityChecker {
         return false;
     }
 
+    // Helper for in-bounds + occupied checks on original board.
     private boolean isOriginalTileAt(Board original, int row, int col) {
         return original.inBounds(row, col) && original.isTile(row, col);
     }

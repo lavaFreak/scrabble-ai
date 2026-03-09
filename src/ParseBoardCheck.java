@@ -9,6 +9,12 @@ import java.io.IOException;
 
 public class ParseBoardCheck {
 
+    /**
+     * Runs parse utility against a board-pair input file.
+     *
+     * @param args expected single argument: input file path
+     * @throws IOException if file read fails
+     */
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("usage: java ParseBoardCheck <input-file>");
@@ -31,6 +37,7 @@ public class ParseBoardCheck {
         }
     }
 
+    // Prints one board with label for manual parser verification.
     private static void printBoard(String label, Board board) {
         System.out.println(label + ":");
         for (int r = 0; r < board.size(); r++) {

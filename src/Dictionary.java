@@ -16,6 +16,13 @@ public class Dictionary {
         this.words = words;
     }
 
+    /**
+     * Loads dictionary entries from file.
+     *
+     * @param dictionaryPath path to dictionary text file
+     * @return dictionary instance containing all non-empty lines
+     * @throws IOException if dictionary file cannot be read
+     */
     public static Dictionary fromFile(String dictionaryPath) throws IOException {
         Set<String> loaded = new HashSet<>();
         try (BufferedReader in = new BufferedReader(new FileReader(dictionaryPath))) {
@@ -30,6 +37,12 @@ public class Dictionary {
         return new Dictionary(loaded);
     }
 
+    /**
+     * Checks whether a word exists in the dictionary.
+     *
+     * @param word candidate word
+     * @return true when present (case-insensitive)
+     */
     public boolean contains(String word) {
         return words.contains(word.toLowerCase());
     }

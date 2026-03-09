@@ -8,6 +8,13 @@ import java.io.IOException;
 
 public class BoardParser {
 
+    /**
+     * Reads one board from input.
+     *
+     * @param in source reader
+     * @return parsed board or null at EOF before next case
+     * @throws IOException if stream read fails
+     */
     public Board readBoard(BufferedReader in) throws IOException {
         String sizeLine = readNextNonEmptyLine(in);
         if (sizeLine == null) {
@@ -36,6 +43,7 @@ public class BoardParser {
         return new Board(size, tokens);
     }
 
+    // Skips blank lines and returns next data line or null at EOF.
     private String readNextNonEmptyLine(BufferedReader in) throws IOException {
         String line;
         while ((line = in.readLine()) != null) {

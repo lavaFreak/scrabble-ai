@@ -10,6 +10,12 @@ import java.util.List;
 
 public class Scorechecker {
 
+    /**
+     * Runs scorer command-line program.
+     *
+     * @param args expected single dictionary-file path
+     * @throws IOException if dictionary or stdin reads fail
+     */
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("usage: java -jar Scorechecker.jar <dictionary-file>");
@@ -65,6 +71,7 @@ public class Scorechecker {
         }
     }
 
+    // Prints labeled board exactly in expected row format.
     private static void printBoard(String label, Board board) {
         System.out.println(label);
         for (int r = 0; r < board.size(); r++) {

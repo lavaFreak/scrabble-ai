@@ -9,6 +9,15 @@ import java.util.Set;
 
 public class Scorer {
 
+    /**
+     * Computes total score for one legal move.
+     *
+     * @param original board before move (premium squares source)
+     * @param result board after move (tile letters source)
+     * @param played newly placed tiles
+     * @param words all formed words for this move
+     * @return total turn score
+     */
     public int computeScore(Board original, Board result, List<PlayedTile> played, List<WordPlacement> words) {
         Set<String> newlyPlayed = new HashSet<>();
         for (PlayedTile tile : played) {
@@ -52,6 +61,7 @@ public class Scorer {
         return total;
     }
 
+    // Returns standard face value for tile letter (blank tiles score 0).
     private int letterPoints(Board board, int row, int col) {
         if (board.isBlankTile(row, col)) {
             return 0;
@@ -68,6 +78,7 @@ public class Scorer {
         };
     }
 
+    // Small coordinate key utility for quick set membership.
     private String coordKey(int row, int col) {
         return row + "," + col;
     }
