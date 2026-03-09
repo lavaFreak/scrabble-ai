@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class ScorecheckerSoFarTests {
     public static void main(String[] args) throws Exception {
@@ -15,6 +16,9 @@ public class ScorecheckerSoFarTests {
         testScorecheckerPrintsExpectedPlayLinesSoFar();
         testScorecheckerPrintsCaseBreaks();
         testScorecheckerPrintsIncompatibleBoardMessages();
+        testScorecheckerPrintsLegalAndIllegalLines();
+        testScoreLinesForKnownCases();
+        testRiskCasesWithSyntheticBoards();
 
         System.out.println("All tests passed.");
     }
@@ -70,7 +74,181 @@ public class ScorecheckerSoFarTests {
             "Expected tile removed incompatibility message");
     }
 
+    private static void testScorecheckerPrintsLegalAndIllegalLines() throws Exception {
+        String input = Files.readString(Path.of("Resources/examples/example_score_input.txt"));
+        String output = runScorechecker(input);
+
+        check(output.contains("play is c at (3, 3), a at (3, 4), t at (3, 5)\nplay is legal"),
+            "Expected CAT move to be legal");
+        check(output.contains("play is d at (0, 6), o at (1, 6), g at (2, 6), x at (3, 6)\nplay is not legal"),
+            "Expected DOGX move to be illegal");
+        check(output.contains("play is empty\nplay is not legal"),
+            "Expected empty play to be illegal");
+    }
+
+    private static void testRiskCasesWithSyntheticBoards() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "cats", "dog", "at"));
+
+        // 1) Incompatibility: tile changed.
+        String inputTileChanged = singleCaseInput(
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. c .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            },
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. d .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out1 = runScorechecker(inputTileChanged, dict.toString());
+        check(out1.contains("Incompatible boards: tile changed at (2, 2)"),
+            "Expected tile-changed incompatibility");
+
+        // 2) Illegal: diagonal placement (not one line).
+        String inputDiagonal = singleCaseInput(
+            empty5(),
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. c .. ..",
+                ".. .. .. a ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out2 = runScorechecker(inputDiagonal, dict.toString());
+        check(out2.contains("play is c at (2, 2), a at (3, 3)\nplay is not legal"),
+            "Expected diagonal placement to be illegal");
+
+        // 3) Illegal: non-contiguous placement with gap.
+        String inputGap = singleCaseInput(
+            empty5(),
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".c .. .t .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out3 = runScorechecker(inputGap, dict.toString());
+        check(out3.contains("play is c at (2, 0), t at (2, 2)\nplay is not legal"),
+            "Expected gapped placement to be illegal");
+
+        // 4) Illegal: first move does not cover center.
+        String inputMissCenter = singleCaseInput(
+            empty5(),
+            new String[] {
+                "a t .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out4 = runScorechecker(inputMissCenter, dict.toString());
+        check(out4.contains("play is a at (0, 0), t at (0, 1)\nplay is not legal"),
+            "Expected first move missing center to be illegal");
+
+        // 5) Illegal: move disconnected from existing tiles.
+        String inputDisconnected = singleCaseInput(
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. c a t ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            },
+            new String[] {
+                "d o g .. ..",
+                ".. .. .. .. ..",
+                ".. c a t ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out5 = runScorechecker(inputDisconnected, dict.toString());
+        check(out5.contains("play is d at (0, 0), o at (0, 1), g at (0, 2)\nplay is not legal"),
+            "Expected disconnected move to be illegal");
+
+        // 6) Illegal: dictionary rejection (word not in dict).
+        String inputBadWord = singleCaseInput(
+            empty5(),
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. z z z ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out6 = runScorechecker(inputBadWord, dict.toString());
+        check(out6.contains("play is z at (2, 1), z at (2, 2), z at (2, 3)\nplay is not legal"),
+            "Expected unknown word to be illegal");
+
+        // 7) Illegal: cross word formed is invalid.
+        String inputBadCross = singleCaseInput(
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. .q",
+                ".. c a t ..",
+                ".. .. .. .. .z",
+                ".. .. .. .. .."
+            },
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. .q",
+                ".. c a t s",
+                ".. .. .. .. .z",
+                ".. .. .. .. .."
+            }
+        );
+        String out7 = runScorechecker(inputBadCross, dict.toString());
+        check(out7.contains("play is s at (2, 4)\nplay is not legal"),
+            "Expected invalid cross word to be illegal");
+
+        // 8) Legal: add one connecting tile to complete CAT.
+        String inputLegalBridge = singleCaseInput(
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. c .. t ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            },
+            new String[] {
+                ".. .. .. .. ..",
+                ".. .. .. .. ..",
+                ".. c a t ..",
+                ".. .. .. .. ..",
+                ".. .. .. .. .."
+            }
+        );
+        String out8 = runScorechecker(inputLegalBridge, dict.toString());
+        check(out8.contains("play is a at (2, 2)\nplay is legal"),
+            "Expected bridge move to be legal");
+    }
+
+    private static void testScoreLinesForKnownCases() throws Exception {
+        String input = Files.readString(Path.of("Resources/examples/example_score_input.txt"));
+        String output = runScorechecker(input, "Resources/dictionaries/dictionary.txt");
+
+        check(output.contains("play is c at (3, 3), a at (3, 4), t at (3, 5)\nplay is legal\nscore is 10"),
+            "Expected CAT score to be 10");
+        check(output.contains("play is d at (0, 6), o at (1, 6), g at (2, 6), s at (3, 6)\nplay is legal\nscore is 48"),
+            "Expected DOGS score to be 48");
+    }
+
     private static String runScorechecker(String stdinText) throws Exception {
+        return runScorechecker(stdinText, "Resources/dictionaries/animals.txt");
+    }
+
+    private static String runScorechecker(String stdinText, String dictionaryPath) throws Exception {
         InputStream originalIn = System.in;
         PrintStream originalOut = System.out;
 
@@ -81,7 +259,7 @@ public class ScorecheckerSoFarTests {
         try {
             System.setIn(fakeIn);
             System.setOut(fakeOut);
-            Scorechecker.main(new String[] {"Resources/dictionaries/animals.txt"});
+            Scorechecker.main(new String[] {dictionaryPath});
         } finally {
             System.setIn(originalIn);
             System.setOut(originalOut);
@@ -95,5 +273,36 @@ public class ScorecheckerSoFarTests {
         if (!condition) {
             throw new AssertionError(message);
         }
+    }
+
+    private static Path writeTempDictionary(List<String> words) throws IOException {
+        Path path = Files.createTempFile("scorechecker-test-dict-", ".txt");
+        Files.writeString(path, String.join("\n", words) + "\n", StandardCharsets.UTF_8);
+        path.toFile().deleteOnExit();
+        return path;
+    }
+
+    private static String[] empty5() {
+        return new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        };
+    }
+
+    private static String singleCaseInput(String[] originalRows, String[] resultRows) {
+        int n = originalRows.length;
+        StringBuilder sb = new StringBuilder();
+        sb.append(n).append('\n');
+        for (String row : originalRows) {
+            sb.append(row).append('\n');
+        }
+        sb.append(n).append('\n');
+        for (String row : resultRows) {
+            sb.append(row).append('\n');
+        }
+        return sb.toString();
     }
 }

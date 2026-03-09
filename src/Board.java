@@ -34,6 +34,15 @@ public class Board {
         return Character.toLowerCase(extractTileChar(token));
     }
 
+    public boolean isBlankTile(int row, int col) {
+        String token = get(row, col);
+        if (!isTileToken(token)) {
+            return false;
+        }
+        char ch = extractTileChar(token);
+        return Character.isUpperCase(ch);
+    }
+
     public String rowString(int row) {
         return rowString(row, false);
     }
