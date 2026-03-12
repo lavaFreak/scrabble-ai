@@ -1,28 +1,36 @@
-# Project 3 Part 1: Scrabble Scorer
+# Project 3 Part 2: Scrabble Solver
 
-This repository contains **Part 1** of CS 351 Project 3: the scorer program.
+This repository is for **Part 2** of CS 351 Project 3: building a Scrabble solver.
 
 ## Goal
-Given an initial board and a resulting board (after a move), determine:
-- the letters played and their coordinates,
-- whether the play is legal,
-- the score (only if legal).
+Given a board state and a tray of letters, find the **highest-scoring legal move** and print:
+- the input board,
+- the tray,
+- the selected solution word and score,
+- the solution board after placing the move.
 
-## Required Program Behavior
-- Program name/entry: `Scorechecker` (packaged as a jar).
-- Run format:
-  - `java -jar Scorechecker.jar <dictionary-file>`
-- Input source: standard input (not command-line move arguments).
-- Must process **multiple test cases** until EOF.
-- Output must match expected formatting exactly (including whitespace/punctuation).
+## Input and Output
+Input is provided through **standard input** and may contain multiple test cases until EOF.
 
-## Part 1 Output Includes
-- original board,
-- result board,
-- play details (`letter at (row, col)` for each placed tile),
-- legality (`play is legal` / `play is not legal`),
-- score if legal.
+Each solver test case contains:
+1. board size `N`
+2. `N` board rows
+3. one tray line (letters, possibly including `*` for blank tiles)
 
-## Notes
-- Board and dictionary formats follow the Project 3 prompt (`prompt3.pdf`).
-- This repo is intentionally scoped to the scorer stage of the full Scrabble project.
+Output formatting must match the project examples exactly, including labels, spacing, and blank lines.
+
+Reference files:
+1. [`Resources/examples/example_input.txt`](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples/example_input.txt)
+2. [`Resources/examples/example_output.txt`](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples/example_output.txt)
+
+## Part 2 Requirements
+- Enumerate legal placements that can be formed from the tray.
+- Validate candidate moves using Scrabble legality rules.
+- Score each legal move with board multipliers and tile values.
+- Support blank tiles (`*`) correctly.
+- Select the best move according to the Part 2 prompt tie-breaking rules.
+
+## Project Notes
+- Dictionaries are stored under `Resources/dictionaries/`.
+- Board/tile configuration examples are under `Resources/config/`.
+- The Part 1 scorer code in `src/` is intended to be reused/refactored as solver components are added.
