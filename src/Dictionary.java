@@ -3,15 +3,13 @@
  *
  * File purpose: provide case-insensitive dictionary loading and trie-backed lookups.
  */
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 
 public class Dictionary {
-    private final TrieNode trieRoot;
+    private final Trie trie;
 
-    private Dictionary(TrieNode trieRoot) {
-        this.trieRoot = trieRoot;
+    private Dictionary(Trie trie) {
+        this.trie = trie;
     }
 
     /**
@@ -22,17 +20,9 @@ public class Dictionary {
      * @throws IOException if dictionary file cannot be read
      */
     public static Dictionary fromFile(String dictionaryPath) throws IOException {
-        TrieNode root = new TrieNode();
-        try (BufferedReader in = new BufferedReader(new FileReader(dictionaryPath))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                String word = line.trim().toLowerCase();
-                if (!word.isEmpty()) {
-                    insert(root, word);
-                }
-            }
-        }
-        return new Dictionary(root);
+        Trie trie = new Trie();
+        trie.loadFromFileOrThrow(dictionaryPath);
+        return new Dictionary(trie);
     }
 
     /**
@@ -42,8 +32,7 @@ public class Dictionary {
      * @return true when present (case-insensitive)
      */
     public boolean contains(String word) {
-        TrieNode node = traverse(word);
-        return node != null && node.isWord;
+        return trie.search(word);
     }
 
     /**
@@ -53,13 +42,7 @@ public class Dictionary {
      * @return true when at least one word starts with the prefix
      */
     public boolean hasPrefix(String prefix) {
-        if (prefix == null) {
-            return false;
-        }
-        if (prefix.isEmpty()) {
-            return true;
-        }
-        return traverse(prefix) != null;
+        return trie.startsWith(prefix);
     }
 
     /**
@@ -68,7 +51,7 @@ public class Dictionary {
      * @return root cursor for incremental dictionary walks
      */
     public Cursor rootCursor() {
-        return new Cursor(trieRoot);
+        return new Cursor(trie.rootNode());
     }
 
     /**
@@ -82,11 +65,7 @@ public class Dictionary {
         if (cursor == null) {
             return null;
         }
-        int childIndex = childIndex(letter);
-        if (childIndex < 0) {
-            return null;
-        }
-        TrieNode child = cursor.node.children[childIndex];
+        Trie.TrieNode child = trie.advance(cursor.node, letter);
         if (child == null) {
             return null;
         }
@@ -103,66 +82,14 @@ public class Dictionary {
         return cursor != null && cursor.node.isWord;
     }
 
-    // Adds one normalized lowercase word to the trie.
-    private static void insert(TrieNode root, String word) {
-        TrieNode current = root;
-        for (int i = 0; i < word.length(); i++) {
-            int childIndex = childIndex(word.charAt(i));
-            if (childIndex < 0) {
-                return;
-            }
-            if (current.children[childIndex] == null) {
-                current.children[childIndex] = new TrieNode();
-            }
-            current = current.children[childIndex];
-        }
-        current.isWord = true;
-    }
-
-    // Walks the trie for a normalized word/prefix string.
-    private TrieNode traverse(String text) {
-        if (text == null || text.isEmpty()) {
-            return null;
-        }
-
-        TrieNode current = trieRoot;
-        for (int i = 0; i < text.length(); i++) {
-            int childIndex = childIndex(text.charAt(i));
-            if (childIndex < 0) {
-                return null;
-            }
-            TrieNode child = current.children[childIndex];
-            if (child == null) {
-                return null;
-            }
-            current = child;
-        }
-        return current;
-    }
-
-    // Converts one ASCII letter to a 0..25 trie slot.
-    private static int childIndex(char ch) {
-        char lowered = Character.toLowerCase(ch);
-        if (lowered < 'a' || lowered > 'z') {
-            return -1;
-        }
-        return lowered - 'a';
-    }
-
     /**
      * Immutable trie cursor for incremental solver search.
      */
     public static final class Cursor {
-        private final TrieNode node;
+        private final Trie.TrieNode node;
 
-        private Cursor(TrieNode node) {
+        private Cursor(Trie.TrieNode node) {
             this.node = node;
         }
-    }
-
-    // Fixed-size trie node for lowercase English letters.
-    private static final class TrieNode {
-        private final TrieNode[] children = new TrieNode[26];
-        private boolean isWord;
     }
 }

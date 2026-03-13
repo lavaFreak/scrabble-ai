@@ -9,7 +9,9 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Part2FoundationTests {
     /**
@@ -19,6 +21,8 @@ public class Part2FoundationTests {
      * @throws Exception if setup or assertions fail
      */
     public static void main(String[] args) throws Exception {
+        testTrieInterfaceMethods();
+        testTrieLoadsWordsFromFile();
         testDictionaryContainsAndPrefixesCaseInsensitively();
         testDictionaryCursorWalksTrieIncrementally();
         testSolverInputParserReadsExampleCases();
@@ -26,6 +30,39 @@ public class Part2FoundationTests {
         testSolverInputParserRejectsInvalidTrayCharacters();
 
         System.out.println("All tests passed.");
+    }
+
+    private static void testTrieInterfaceMethods() {
+        TrieInterface trie = new Trie();
+
+        trie.insert("Car");
+        trie.insert("cart");
+        trie.insert("carbon");
+        trie.insert("dog");
+
+        check(trie.search("car"), "Expected search to find normalized word");
+        check(trie.search("CART"), "Expected case-insensitive search");
+        check(!trie.search("ca"), "Expected prefix not to count as a full word");
+        check(trie.startsWith("ca"), "Expected valid prefix");
+        check(trie.startsWith("CAR"), "Expected case-insensitive prefix");
+        check(!trie.startsWith("cz"), "Expected invalid prefix to fail");
+
+        Set<String> expected = new LinkedHashSet<>(List.of("car", "carbon", "cart"));
+        check(expected.equals(trie.getWordsWithPrefix("car")),
+            "Expected deterministic prefix word collection");
+        check(trie.getWordsWithPrefix("zzz").isEmpty(), "Expected empty prefix result set");
+    }
+
+    private static void testTrieLoadsWordsFromFile() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "cater", "dog", "zoo"));
+        TrieInterface trie = new Trie();
+        trie.loadFromFile(dict.toString());
+
+        check(trie.search("cat"), "Expected loaded word cat");
+        check(trie.search("DOG"), "Expected case-insensitive loaded word dog");
+        check(trie.startsWith("zo"), "Expected loaded prefix zo");
+        check(new LinkedHashSet<>(List.of("cat", "cater")).equals(trie.getWordsWithPrefix("cat")),
+            "Expected prefix words from loaded file");
     }
 
     private static void testDictionaryContainsAndPrefixesCaseInsensitively() throws Exception {
