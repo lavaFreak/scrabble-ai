@@ -4,7 +4,11 @@
  * File purpose: regression coverage for Part 2 groundwork.
  */
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,6 +41,9 @@ public class Part2FoundationTests {
         testRackTracksLettersAndBlanks();
         testCandidateGeneratorFindsCenterOpeningMoves();
         testCandidateGeneratorUsesExistingTiles();
+        testSolverEngineSelectsBestMove();
+        testSolverPrintsExpectedSingleCaseOutput();
+        testSolverMatchesProvidedExampleOutput();
         testSolverInputParserReadsExampleCases();
         testSolverInputParserNormalizesTray();
         testSolverInputParserRejectsInvalidTrayCharacters();
@@ -366,6 +373,58 @@ public class Part2FoundationTests {
         check(found, "Expected generator to extend an existing board tile into CAT");
     }
 
+    private static void testSolverEngineSelectsBestMove() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "at"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            " c .. ..",
+            ".. .. .."
+        });
+
+        SolverEngine engine = new SolverEngine(dictionary);
+        SolverResult result = engine.solve(board, "at");
+
+        check(result != null, "Expected a solver result");
+        check("cat".equals(result.move().mainWord().toLowerCase()), "Expected CAT to be selected");
+        check(result.move().score() == 5, "Expected CAT score on a plain board");
+        check(result.resultBoard().tileAt(1, 2) == 't', "Expected result board to contain T at (1,2)");
+    }
+
+    private static void testSolverPrintsExpectedSingleCaseOutput() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "at"));
+        String input = ""
+            + "3\n"
+            + ".. .. ..\n"
+            + "c .. ..\n"
+            + ".. .. ..\n"
+            + "at\n";
+
+        String output = runSolver(input, dict.toString());
+        String expected = ""
+            + "Input Board:\n"
+            + ".. .. ..\n"
+            + " c .. ..\n"
+            + ".. .. ..\n"
+            + "Tray: at\n"
+            + "Solution cat has 5 points\n"
+            + "Solution Board:\n"
+            + ".. .. ..\n"
+            + " c  a  t\n"
+            + ".. .. ..\n";
+
+        check(expected.equals(output), "Expected exact single-case solver output");
+    }
+
+    private static void testSolverMatchesProvidedExampleOutput() throws Exception {
+        String input = Files.readString(Path.of("Resources/examples/example_input.txt"));
+        String expected = Files.readString(Path.of("Resources/examples/example_output.txt"));
+        String output = runSolver(input, "Resources/dictionaries/sowpods.txt");
+
+        check(normalizeNewlines(expected).equals(normalizeNewlines(output)),
+            "Expected solver sample output to match the provided example");
+    }
+
     private static void testSolverInputParserReadsExampleCases() throws Exception {
         String input = Files.readString(Path.of("Resources/examples/example_input.txt"));
         SolverInputParser parser = new SolverInputParser();
@@ -444,6 +503,31 @@ public class Part2FoundationTests {
         Files.writeString(path, String.join("\n", words) + "\n", StandardCharsets.UTF_8);
         path.toFile().deleteOnExit();
         return path;
+    }
+
+    private static String runSolver(String stdinText, String dictionaryPath) throws Exception {
+        InputStream originalIn = System.in;
+        PrintStream originalOut = System.out;
+
+        ByteArrayInputStream fakeIn = new ByteArrayInputStream(stdinText.getBytes(StandardCharsets.UTF_8));
+        ByteArrayOutputStream capturedBytes = new ByteArrayOutputStream();
+        PrintStream fakeOut = new PrintStream(capturedBytes, true, StandardCharsets.UTF_8);
+
+        try {
+            System.setIn(fakeIn);
+            System.setOut(fakeOut);
+            Solver.main(new String[] {dictionaryPath});
+        } finally {
+            System.setIn(originalIn);
+            System.setOut(originalOut);
+            fakeOut.close();
+        }
+
+        return capturedBytes.toString(StandardCharsets.UTF_8);
+    }
+
+    private static String normalizeNewlines(String text) {
+        return text.replace("\r\n", "\n");
     }
 
     private static Board boardFromRows(String[] rows) {
