@@ -32,6 +32,11 @@ public class Part2FoundationTests {
         testMoveApplicatorBuildsResultBoard();
         testMoveApplicatorPreservesBlankTiles();
         testMoveApplicatorRejectsConflictingPlacements();
+        testAnchorFinderReturnsCenterOnEmptyBoard();
+        testAnchorFinderCollectsAdjacentSquares();
+        testRackTracksLettersAndBlanks();
+        testCandidateGeneratorFindsCenterOpeningMoves();
+        testCandidateGeneratorUsesExistingTiles();
         testSolverInputParserReadsExampleCases();
         testSolverInputParserNormalizesTray();
         testSolverInputParserRejectsInvalidTrayCharacters();
@@ -262,6 +267,103 @@ public class Part2FoundationTests {
             threw = ex.getMessage().contains("conflicts with main word text");
         }
         check(threw, "Expected conflicting existing tile rejection");
+    }
+
+    private static void testAnchorFinderReturnsCenterOnEmptyBoard() {
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. .. ..",
+            ".. .. .."
+        });
+
+        AnchorFinder finder = new AnchorFinder();
+        List<AnchorSquare> anchors = finder.collectAnchors(board);
+        check(anchors.size() == 1, "Expected one center anchor on empty board");
+        check(anchors.get(0).row() == 1 && anchors.get(0).col() == 1, "Expected center anchor at (1,1)");
+    }
+
+    private static void testAnchorFinderCollectsAdjacentSquares() {
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. c ..",
+            ".. .. .."
+        });
+
+        AnchorFinder finder = new AnchorFinder();
+        List<AnchorSquare> anchors = finder.collectAnchors(board);
+        Set<String> keys = new LinkedHashSet<>();
+        for (AnchorSquare anchor : anchors) {
+            keys.add(anchor.key());
+        }
+
+        check(keys.size() == 4, "Expected four orthogonally adjacent anchors");
+        check(keys.contains("0,1"), "Expected north anchor");
+        check(keys.contains("1,0"), "Expected west anchor");
+        check(keys.contains("1,2"), "Expected east anchor");
+        check(keys.contains("2,1"), "Expected south anchor");
+    }
+
+    private static void testRackTracksLettersAndBlanks() {
+        Rack rack = Rack.fromTray("ab*");
+
+        check(rack.tilesRemaining() == 3, "Expected three rack tiles");
+        check(rack.hasLetter('a'), "Expected letter a");
+        check(rack.hasBlank(), "Expected one blank");
+
+        rack.useLetter('a');
+        rack.useBlank();
+        check(!rack.hasLetter('a'), "Expected a to be consumed");
+        check(!rack.hasBlank(), "Expected blank to be consumed");
+        check(rack.tilesRemaining() == 1, "Expected one remaining tile after consumption");
+
+        rack.restoreLetter('a');
+        rack.restoreBlank();
+        check(rack.hasLetter('a'), "Expected a restored");
+        check(rack.hasBlank(), "Expected blank restored");
+        check(rack.tilesRemaining() == 3, "Expected full rack after restoration");
+    }
+
+    private static void testCandidateGeneratorFindsCenterOpeningMoves() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. .. ..",
+            ".. .. .."
+        });
+
+        CandidateGenerator generator = new CandidateGenerator(dictionary);
+        List<MoveCandidate> candidates = generator.generateLegalCandidates(board, "cat");
+
+        check(candidates.size() == 2, "Expected horizontal and vertical opening CAT moves");
+        check(candidates.stream().allMatch(candidate -> "cat".equals(candidate.mainWord().toLowerCase())),
+            "Expected only CAT candidates");
+        check(candidates.stream().allMatch(MoveCandidate::hasScore), "Expected generated candidates to be scored");
+    }
+
+    private static void testCandidateGeneratorUsesExistingTiles() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "at"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            " c .. ..",
+            ".. .. .."
+        });
+
+        CandidateGenerator generator = new CandidateGenerator(dictionary);
+        List<MoveCandidate> candidates = generator.generateLegalCandidates(board, "at");
+
+        boolean found = false;
+        for (MoveCandidate candidate : candidates) {
+            if ("cat".equals(candidate.mainWord().toLowerCase())
+                && candidate.isHorizontal()
+                && candidate.startRow() == 1
+                && candidate.startCol() == 0) {
+                found = true;
+                break;
+            }
+        }
+        check(found, "Expected generator to extend an existing board tile into CAT");
     }
 
     private static void testSolverInputParserReadsExampleCases() throws Exception {
