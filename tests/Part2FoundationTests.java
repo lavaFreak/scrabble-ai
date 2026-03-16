@@ -25,6 +25,13 @@ public class Part2FoundationTests {
         testTrieLoadsWordsFromFile();
         testDictionaryContainsAndPrefixesCaseInsensitively();
         testDictionaryCursorWalksTrieIncrementally();
+        testMoveCandidateNormalizesGeometryAndTileOrder();
+        testMoveCandidateScoreKeyAndBlankHelpers();
+        testMoveCandidateRejectsInvalidTiles();
+        testMoveExtractorPreservesBlankTiles();
+        testMoveApplicatorBuildsResultBoard();
+        testMoveApplicatorPreservesBlankTiles();
+        testMoveApplicatorRejectsConflictingPlacements();
         testSolverInputParserReadsExampleCases();
         testSolverInputParserNormalizesTray();
         testSolverInputParserRejectsInvalidTrayCharacters();
@@ -97,6 +104,164 @@ public class Part2FoundationTests {
         check(cate != null, "Expected trie branch for cate");
         check(!dictionary.isWord(cate), "Expected cate to be only a prefix");
         check(dictionary.advance(cat, 'x') == null, "Expected missing branch to return null");
+    }
+
+    private static void testMoveCandidateNormalizesGeometryAndTileOrder() {
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(true, 7, 3, 6),
+            "cart",
+            List.of(
+                new PlayedTile('t', 7, 6),
+                new PlayedTile('c', 7, 3),
+                new PlayedTile('a', 7, 4)
+            )
+        );
+
+        check(candidate.isHorizontal(), "Expected horizontal candidate");
+        check("cart".equals(candidate.mainWord()), "Expected stored main word");
+        check(candidate.tileCount() == 3, "Expected three played tiles");
+        check(candidate.playedTiles().get(0).col() == 3, "Expected row-major tile ordering");
+        check(candidate.startRow() == 7 && candidate.startCol() == 3, "Expected start coordinate helpers");
+        check(candidate.endRow() == 7 && candidate.endCol() == 6, "Expected end coordinate helpers");
+        check(candidate.coversSquare(7, 5), "Expected covered square on main word");
+        check(!candidate.coversSquare(6, 5), "Expected uncovered square off main word");
+        check(candidate.playsAt(7, 4), "Expected newly played tile at (7,4)");
+        check(!candidate.playsAt(7, 5), "Expected existing-tile square not to count as newly played");
+        check(!candidate.hasScore(), "Expected unscored candidate initially");
+    }
+
+    private static void testMoveCandidateScoreKeyAndBlankHelpers() {
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(false, 8, 2, 5),
+            "Bags",
+            List.of(
+                new PlayedTile('b', 2, 8, true),
+                new PlayedTile('a', 3, 8),
+                new PlayedTile('g', 4, 8)
+            )
+        );
+
+        MoveCandidate scored = candidate.withScore(38);
+        check(candidate.usesBlankTiles(), "Expected blank-tile detection");
+        check(scored.hasScore(), "Expected scored candidate");
+        check(scored.score() == 38, "Expected assigned score");
+        check(scored.key().contains("V:8:2:5:Bags"), "Expected stable candidate key");
+        check(scored.key().contains("2,8=B"), "Expected blank tile encoded distinctly in key");
+    }
+
+    private static void testMoveCandidateRejectsInvalidTiles() {
+        boolean threw = false;
+        try {
+            new MoveCandidate(
+                new WordPlacement(true, 4, 1, 3),
+                "cat",
+                List.of(
+                    new PlayedTile('c', 4, 1),
+                    new PlayedTile('a', 5, 2)
+                )
+            );
+        } catch (IllegalArgumentException ex) {
+            threw = ex.getMessage().contains("outside main word placement");
+        }
+        check(threw, "Expected tiles outside the placement to be rejected");
+    }
+
+    private static void testMoveExtractorPreservesBlankTiles() {
+        Board original = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. .. ..",
+            ".. .. .."
+        });
+        Board result = boardFromRows(new String[] {
+            ".. .. ..",
+            ".. A ..",
+            ".. .. .."
+        });
+
+        MoveExtractor extractor = new MoveExtractor();
+        List<PlayedTile> played = extractor.collectNewTiles(original, result);
+        check(played.size() == 1, "Expected one extracted played tile");
+        check(played.get(0).letter() == 'a', "Expected lowercased extracted blank letter");
+        check(played.get(0).isBlank(), "Expected blank-tile state to be preserved");
+    }
+
+    private static void testMoveApplicatorBuildsResultBoard() {
+        Board original = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. c .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(true, 2, 1, 3),
+            "cat",
+            List.of(
+                new PlayedTile('a', 2, 2),
+                new PlayedTile('t', 2, 3)
+            )
+        );
+
+        MoveApplicator applicator = new MoveApplicator();
+        Board result = applicator.apply(original, candidate);
+
+        check(!original.isTile(2, 2), "Expected original board to remain unchanged");
+        check(result.isTile(2, 1), "Expected original tile on main word to remain present");
+        check(result.tileAt(2, 1) == 'c', "Expected original board letter to remain");
+        check(result.tileAt(2, 2) == 'a', "Expected applied tile at (2,2)");
+        check(result.tileAt(2, 3) == 't', "Expected applied tile at (2,3)");
+        check("cat".equals(candidate.mainWordPlacement().text(result)), "Expected materialized main word");
+    }
+
+    private static void testMoveApplicatorPreservesBlankTiles() {
+        Board original = boardFromRows(new String[] {
+            ".. .. .. ..",
+            ".. .. .. ..",
+            ".. .. .. ..",
+            ".. .. .. .."
+        });
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(false, 1, 0, 2),
+            "Bag",
+            List.of(
+                new PlayedTile('b', 0, 1, true),
+                new PlayedTile('a', 1, 1),
+                new PlayedTile('g', 2, 1)
+            )
+        );
+
+        MoveApplicator applicator = new MoveApplicator();
+        Board result = applicator.apply(original, candidate);
+
+        check("B".equals(result.get(0, 1)), "Expected uppercase token for blank tile");
+        check(result.isBlankTile(0, 1), "Expected blank tile state on applied board");
+        check(result.tileAt(0, 1) == 'b', "Expected lowercased letter lookup for blank tile");
+    }
+
+    private static void testMoveApplicatorRejectsConflictingPlacements() {
+        Board original = boardFromRows(new String[] {
+            ".. .. .. ..",
+            ".. x .. ..",
+            ".. .. .. ..",
+            ".. .. .. .."
+        });
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(true, 1, 1, 3),
+            "cat",
+            List.of(
+                new PlayedTile('a', 1, 2),
+                new PlayedTile('t', 1, 3)
+            )
+        );
+
+        MoveApplicator applicator = new MoveApplicator();
+        boolean threw = false;
+        try {
+            applicator.apply(original, candidate);
+        } catch (IllegalArgumentException ex) {
+            threw = ex.getMessage().contains("conflicts with main word text");
+        }
+        check(threw, "Expected conflicting existing tile rejection");
     }
 
     private static void testSolverInputParserReadsExampleCases() throws Exception {
@@ -177,5 +342,18 @@ public class Part2FoundationTests {
         Files.writeString(path, String.join("\n", words) + "\n", StandardCharsets.UTF_8);
         path.toFile().deleteOnExit();
         return path;
+    }
+
+    private static Board boardFromRows(String[] rows) {
+        int size = rows.length;
+        String[][] tokens = new String[size][size];
+        for (int r = 0; r < size; r++) {
+            String[] parts = rows[r].trim().split("\\s+");
+            if (parts.length != size) {
+                throw new IllegalArgumentException("Invalid row width for synthetic board at row " + r);
+            }
+            System.arraycopy(parts, 0, tokens[r], 0, size);
+        }
+        return new Board(size, tokens);
     }
 }

@@ -20,7 +20,7 @@ public class MoveExtractor {
         for (int r = 0; r < original.size(); r++) {
             for (int c = 0; c < original.size(); c++) {
                 if (!original.isTile(r, c) && result.isTile(r, c)) {
-                    played.add(new PlayedTile(result.tileAt(r, c), r, c));
+                    played.add(new PlayedTile(result.tileAt(r, c), r, c, result.isBlankTile(r, c)));
                 }
             }
         }
