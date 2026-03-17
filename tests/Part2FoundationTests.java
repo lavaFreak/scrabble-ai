@@ -43,8 +43,11 @@ public class Part2FoundationTests {
         testCandidateGeneratorFindsCenterOpeningMoves();
         testCandidateGeneratorUsesExistingTiles();
         testCandidateGeneratorBestOnlyMatchesSortedList();
+        testScorerCountsCrossWordsAndPremiumSquares();
         testSolverEngineSelectsBestMove();
         testSolverPrintsExpectedSingleCaseOutput();
+        testSolverPrintsBlankTileOutput();
+        testSolverPrintsNoMoveOutput();
         testSolverMatchesProvidedExampleOutput();
         testSolverInputParserReadsExampleCases();
         testSolverInputParserNormalizesTray();
@@ -423,6 +426,45 @@ public class Part2FoundationTests {
             "Expected best-only score to match the leading full candidate");
     }
 
+    private static void testScorerCountsCrossWordsAndPremiumSquares() throws Exception {
+        Path dict = writeTempDictionary(List.of("one", "ant"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board original = boardFromRows(new String[] {
+            ".. a ..",
+            ".. 2. ..",
+            ".. t .."
+        });
+        MoveCandidate candidate = new MoveCandidate(
+            new WordPlacement(true, 1, 0, 2),
+            "one",
+            List.of(
+                new PlayedTile('o', 1, 0),
+                new PlayedTile('n', 1, 1),
+                new PlayedTile('e', 1, 2)
+            )
+        );
+
+        MoveApplicator applicator = new MoveApplicator();
+        Board result = applicator.apply(original, candidate);
+
+        WordFinder wordFinder = new WordFinder();
+        List<WordPlacement> words = wordFinder.collectFormedWordPlacements(result, candidate.playedTiles());
+        LegalityChecker legalityChecker = new LegalityChecker(dictionary);
+        check(legalityChecker.isLegalMove(original, result, candidate.playedTiles(), words),
+            "Expected premium cross-word move to be legal");
+
+        Set<String> wordKeys = new LinkedHashSet<>();
+        for (WordPlacement word : words) {
+            wordKeys.add(word.key());
+        }
+        check(wordKeys.equals(new LinkedHashSet<>(List.of("H:1:0:2", "V:1:0:2"))),
+            "Expected ONE main word plus ANT cross word");
+
+        Scorer scorer = new Scorer();
+        int score = scorer.computeScore(original, result, candidate.playedTiles(), words);
+        check(score == 12, "Expected ONE on a double-word plus ANT cross word to score 12");
+    }
+
     private static void testSolverEngineSelectsBestMove() throws Exception {
         Path dict = writeTempDictionary(List.of("cat", "at"));
         Dictionary dictionary = Dictionary.fromFile(dict.toString());
@@ -465,6 +507,58 @@ public class Part2FoundationTests {
             + "\n";
 
         check(expected.equals(output), "Expected exact single-case solver output");
+    }
+
+    private static void testSolverPrintsBlankTileOutput() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat"));
+        String input = ""
+            + "3\n"
+            + ".. .. ..\n"
+            + "c .. ..\n"
+            + ".. .. ..\n"
+            + "*t\n";
+
+        String output = runSolver(input, dict.toString());
+        String expected = ""
+            + "Input Board:\n"
+            + ".. .. ..\n"
+            + " c .. ..\n"
+            + ".. .. ..\n"
+            + "Tray: *t\n"
+            + "Solution cAt has 4 points\n"
+            + "Solution Board:\n"
+            + ".. .. ..\n"
+            + " c  A  t\n"
+            + ".. .. ..\n"
+            + "\n";
+
+        check(expected.equals(output), "Expected blank tiles to stay uppercase in solver output");
+    }
+
+    private static void testSolverPrintsNoMoveOutput() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat"));
+        String input = ""
+            + "3\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + "zz\n";
+
+        String output = runSolver(input, dict.toString());
+        String expected = ""
+            + "Input Board:\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + "Tray: zz\n"
+            + "No legal move found\n"
+            + "Solution Board:\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + ".. .. ..\n"
+            + "\n";
+
+        check(expected.equals(output), "Expected exact no-move solver output");
     }
 
     private static void testSolverMatchesProvidedExampleOutput() throws Exception {
