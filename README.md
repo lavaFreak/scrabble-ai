@@ -68,7 +68,7 @@ ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\
 The solver uses a deterministic highest-score search. If multiple moves tie for best score, it keeps the first
 highest-scoring move encountered, which is allowed by the prompt.
 
-The current architecture snapshot is documented in [scrabble-architecture.jpg](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.jpg).
+The current architecture snapshot is documented in [scrabble-architecture.drawio](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.drawio).
 
 ## Tests
 Compile and run the current regression suites from the repository root:
