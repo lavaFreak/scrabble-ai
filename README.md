@@ -36,13 +36,8 @@ Reference files:
 - The Part 1 scorer code in `src/` is intended to be reused/refactored as solver components are added.
 
 ## Build And Run
-Build both required submission jars from the repository root:
-
-```sh
-sh build_submission_jars.sh
-```
-
-This creates both `Scorechecker.jar` and `Solver.jar` with the required prompt-facing main classes.
+The submission jars are tracked at the repository root as [Scorechecker.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Scorechecker.jar)
+and [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
 
 Run the scorer exactly in the required format:
 
@@ -72,6 +67,8 @@ ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\
 
 The solver uses a deterministic highest-score search. If multiple moves tie for best score, it keeps the first
 highest-scoring move encountered, which is allowed by the prompt.
+
+The current architecture snapshot is documented in [scrabble-architecture.jpg](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.jpg).
 
 ## Tests
 Compile and run the current regression suites from the repository root:

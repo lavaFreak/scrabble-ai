@@ -51,6 +51,8 @@ codestandards.pdf
 
 # Local archive drops
 *.zip
+build_submission_jars.sh
+*.drawio
 
 # Generated grader/test outputs
 test_results/
