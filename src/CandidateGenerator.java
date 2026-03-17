@@ -312,7 +312,7 @@ public class CandidateGenerator {
 
     // Collects deduplicated candidates during generation.
     private interface CandidateCollector {
-        void accept(MoveCandidate candidate);
+        public void accept(MoveCandidate candidate);
     }
 
     // Materializes every unique candidate for callers that need the full list.

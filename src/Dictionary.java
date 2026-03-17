@@ -79,7 +79,7 @@ public class Dictionary {
      * @return true when the consumed letters form a dictionary word
      */
     public boolean isWord(Cursor cursor) {
-        return cursor != null && cursor.node.isWord;
+        return cursor != null && trie.isWordNode(cursor.node);
     }
 
     /**

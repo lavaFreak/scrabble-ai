@@ -34,3 +34,50 @@ Reference files:
 - Dictionaries are stored under `Resources/dictionaries/`.
 - Board/tile configuration examples are under `Resources/config/`.
 - The Part 1 scorer code in `src/` is intended to be reused/refactored as solver components are added.
+
+## Build And Run
+Build both required submission jars from the repository root:
+
+```sh
+sh build_submission_jars.sh
+```
+
+This creates both `Scorechecker.jar` and `Solver.jar` with the required prompt-facing main classes.
+
+Run the scorer exactly in the required format:
+
+```sh
+java -jar Scorechecker.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_score_input.txt
+```
+
+Run the solver exactly in the required format:
+
+```sh
+java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_input.txt
+```
+
+To verify the scorer output against the provided example:
+
+```sh
+java -jar Scorechecker.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_score_input.txt > /tmp/scorechecker-output.txt
+ruby -e 'expected = File.read("Resources/examples/example_score_output.txt").gsub("\r\n", "\n"); actual = File.read("/tmp/scorechecker-output.txt").gsub("\r\n", "\n"); abort("output mismatch") unless expected == actual'
+```
+
+To verify the solver output against the provided example:
+
+```sh
+java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_input.txt > /tmp/solver-output.txt
+ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\n", "\n"); actual = File.read("/tmp/solver-output.txt").gsub("\r\n", "\n"); abort("output mismatch") unless expected == actual'
+```
+
+The solver uses a deterministic highest-score search. If multiple moves tie for best score, it keeps the first
+highest-scoring move encountered, which is allowed by the prompt.
+
+## Tests
+Compile and run the current regression suites from the repository root:
+
+```sh
+javac -d build/classes src/*.java tests/*.java
+java -cp build/classes ScorecheckerSoFarTests
+java -cp build/classes Part2FoundationTests
+```

@@ -55,6 +55,9 @@ codestandards.pdf
 # Generated grader/test outputs
 test_results/
 
+# Do not keep built jars under source directories
+src/*.jar
+
 # Keep committed resource dictionaries and configs
 !Resources/
 !Resources/dictionaries/

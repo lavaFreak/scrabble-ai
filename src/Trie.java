@@ -2,6 +2,7 @@
  * Author: Garion
  *
  * File purpose: trie implementation used by the solver dictionary and standalone trie exercises.
+ * Use this class directly for lab-style trie operations or through Dictionary for solver lookups.
  */
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -36,7 +37,7 @@ public class Trie implements TrieInterface {
             }
             current = current.children[childIndex];
         }
-        current.isWord = true;
+        current.word = true;
     }
 
     /**
@@ -48,7 +49,7 @@ public class Trie implements TrieInterface {
     @Override
     public boolean search(String word) {
         TrieNode node = traverse(word);
-        return node != null && node.isWord;
+        return isWordNode(node);
     }
 
     /**
@@ -129,8 +130,13 @@ public class Trie implements TrieInterface {
         }
     }
 
-    // Walks the trie for a normalized word/prefix string.
-    TrieNode traverse(String text) {
+    /**
+     * Walks the trie to the node reached by a normalized word or prefix string.
+     *
+     * @param text candidate full word or prefix
+     * @return terminal node for that path, or null when the path does not exist
+     */
+    public TrieNode traverse(String text) {
         String normalized = normalize(text);
         if (normalized == null || normalized.isEmpty()) {
             return null;
@@ -151,13 +157,23 @@ public class Trie implements TrieInterface {
         return current;
     }
 
-    // Exposes the root node for incremental search helpers.
-    TrieNode rootNode() {
+    /**
+     * Returns the trie root for incremental search helpers.
+     *
+     * @return root node
+     */
+    public TrieNode rootNode() {
         return root;
     }
 
-    // Advances one trie edge for a lowercase English letter.
-    TrieNode advance(TrieNode node, char letter) {
+    /**
+     * Advances one trie edge from a given node using a single English letter.
+     *
+     * @param node current trie node
+     * @param letter next letter to consume
+     * @return child node for that letter, or null when no such edge exists
+     */
+    public TrieNode advance(TrieNode node, char letter) {
         if (node == null) {
             return null;
         }
@@ -168,9 +184,19 @@ public class Trie implements TrieInterface {
         return node.children[childIndex];
     }
 
+    /**
+     * Returns whether a trie node marks a complete stored word.
+     *
+     * @param node trie node to inspect
+     * @return true when the node exists and terminates a full word
+     */
+    public boolean isWordNode(TrieNode node) {
+        return node != null && node.word;
+    }
+
     // Collects all terminal words below one node.
     private void collectWords(TrieNode node, StringBuilder prefix, Set<String> matches) {
-        if (node.isWord) {
+        if (node.word) {
             matches.add(prefix.toString());
         }
 
@@ -202,9 +228,12 @@ public class Trie implements TrieInterface {
         return lowered - 'a';
     }
 
-    // Fixed-size trie node for lowercase English letters.
-    static final class TrieNode {
-        final TrieNode[] children = new TrieNode[26];
-        boolean isWord;
+    /**
+     * Fixed-size trie node for lowercase English letters.
+     * Use this node only through Trie traversal helpers rather than mutating it directly.
+     */
+    public static final class TrieNode {
+        private final TrieNode[] children = new TrieNode[26];
+        private boolean word;
     }
 }

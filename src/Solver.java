@@ -45,7 +45,9 @@ public class Solver {
                 continue;
             }
 
-            System.out.println("Solution " + solution.move().mainWord() + " has " + solution.move().score() + " points");
+            MoveCandidate move = solution.move();
+            String solutionLine = "Solution " + move.mainWord() + " has " + move.score() + " points";
+            System.out.println(solutionLine);
             printBoard("Solution Board:", solution.resultBoard());
             System.out.println();
         }

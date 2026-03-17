@@ -1,3 +1,9 @@
+/**
+ * Author: Garion
+ *
+ * File purpose: define the trie operations required by the lab-style dictionary API.
+ * Use this interface when you need standalone trie insertion, lookup, prefix, or file-loading behavior.
+ */
 import java.util.Set;
 
 public interface TrieInterface {
@@ -7,7 +13,7 @@ public interface TrieInterface {
      *
      * @param word the word to insert
      */
-    void insert(String word);
+    public void insert(String word);
 
     /**
      * Returns true if the word exists in the trie as a complete word.
@@ -15,7 +21,7 @@ public interface TrieInterface {
      * @param word the word to search for
      * @return true if found, false otherwise
      */
-    boolean search(String word);
+    public boolean search(String word);
 
     /**
      * Returns true if any word in the trie starts with the given prefix.
@@ -23,7 +29,7 @@ public interface TrieInterface {
      * @param prefix the prefix to check
      * @return true if prefix exists, false otherwise
      */
-    boolean startsWith(String prefix);
+    public boolean startsWith(String prefix);
 
     /**
      * Returns all words in the trie that begin with the given prefix.
@@ -31,12 +37,12 @@ public interface TrieInterface {
      * @param prefix the prefix to search by
      * @return Set of matching words, empty set if none found
      */
-    Set<String> getWordsWithPrefix(String prefix);
+    public Set<String> getWordsWithPrefix(String prefix);
 
     /**
      * Loads words from a file, inserting each line as a word.
      *
      * @param filename path to the file
      */
-    void loadFromFile(String filename);
+    public void loadFromFile(String filename);
 }
