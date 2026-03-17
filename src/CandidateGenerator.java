@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Set;
 
 public class CandidateGenerator {
+    private static final Comparator<MoveCandidate> CANDIDATE_ORDER = Comparator
+        .comparingInt(MoveCandidate::score)
+        .reversed()
+        .thenComparing(MoveCandidate::key);
+
     private final Dictionary dictionary;
     private final AnchorFinder anchorFinder = new AnchorFinder();
     private final MoveApplicator moveApplicator = new MoveApplicator();
@@ -38,24 +43,38 @@ public class CandidateGenerator {
      * @return scored legal candidates in deterministic order
      */
     public List<MoveCandidate> generateLegalCandidates(Board board, String tray) {
+        CandidateListCollector collector = new CandidateListCollector();
+        generateCandidates(board, tray, collector);
+        collector.generated.sort(CANDIDATE_ORDER);
+        return collector.generated;
+    }
+
+    /**
+     * Generates and returns only the best legal move candidate for a board and rack.
+     *
+     * @param board current board
+     * @param tray normalized rack letters plus optional '*'
+     * @return highest-ranked legal candidate or null when none exists
+     */
+    public MoveCandidate findBestLegalCandidate(Board board, String tray) {
+        BestCandidateCollector collector = new BestCandidateCollector();
+        generateCandidates(board, tray, collector);
+        return collector.best;
+    }
+
+    // Drives anchor-based generation with a caller-provided result collector.
+    private void generateCandidates(Board board, String tray, CandidateCollector collector) {
         if (board == null) {
             throw new IllegalArgumentException("board is required");
         }
 
         Rack rack = Rack.fromTray(tray);
-        List<MoveCandidate> generated = new ArrayList<>();
-        Set<String> seen = new LinkedHashSet<>();
+        CrossCheckCache crossChecks = new CrossCheckCache(board, dictionary);
 
         for (AnchorSquare anchor : anchorFinder.collectAnchors(board)) {
-            generateForAnchor(board, anchor, true, rack, seen, generated);
-            generateForAnchor(board, anchor, false, rack, seen, generated);
+            generateForAnchor(board, anchor, true, rack, crossChecks, collector);
+            generateForAnchor(board, anchor, false, rack, crossChecks, collector);
         }
-
-        generated.sort(Comparator
-            .comparingInt(MoveCandidate::score)
-            .reversed()
-            .thenComparing(MoveCandidate::key));
-        return generated;
     }
 
     // Enumerates all start/end segments for one anchor and orientation.
@@ -64,8 +83,8 @@ public class CandidateGenerator {
         AnchorSquare anchor,
         boolean horizontal,
         Rack rack,
-        Set<String> seen,
-        List<MoveCandidate> generated
+        CrossCheckCache crossChecks,
+        CandidateCollector collector
     ) {
         int fixed = horizontal ? anchor.row() : anchor.col();
         int anchorIndex = horizontal ? anchor.col() : anchor.row();
@@ -89,12 +108,12 @@ public class CandidateGenerator {
                     continue;
                 }
 
-                fillSegment(board, horizontal, fixed, start, end, rack, seen, generated);
+                fillSegment(board, horizontal, fixed, start, end, rack, crossChecks, collector);
             }
         }
     }
 
-    // Placeholder to be filled by trie-backed word construction in the next iteration.
+    // Builds candidates for one segment using trie backtracking and cross-check pruning.
     private void fillSegment(
         Board board,
         boolean horizontal,
@@ -102,8 +121,8 @@ public class CandidateGenerator {
         int start,
         int end,
         Rack rack,
-        Set<String> seen,
-        List<MoveCandidate> generated
+        CrossCheckCache crossChecks,
+        CandidateCollector collector
     ) {
         buildCandidatesOnSegment(
             board,
@@ -116,8 +135,8 @@ public class CandidateGenerator {
             dictionary.rootCursor(),
             new StringBuilder(),
             new ArrayList<>(),
-            seen,
-            generated
+            crossChecks,
+            collector
         );
     }
 
@@ -133,8 +152,8 @@ public class CandidateGenerator {
         Dictionary.Cursor cursor,
         StringBuilder word,
         List<PlayedTile> playedTiles,
-        Set<String> seen,
-        List<MoveCandidate> generated
+        CrossCheckCache crossChecks,
+        CandidateCollector collector
     ) {
         if (index > end) {
             if (!dictionary.isWord(cursor)) {
@@ -162,9 +181,7 @@ public class CandidateGenerator {
             MoveCandidate scored = candidate.withScore(
                 scorer.computeScore(board, result, candidate.playedTiles(), words)
             );
-            if (seen.add(scored.key())) {
-                generated.add(scored);
-            }
+            collector.accept(scored);
             return;
         }
 
@@ -183,7 +200,18 @@ public class CandidateGenerator {
                 : boardLetter;
             word.append(displayLetter);
             buildCandidatesOnSegment(
-                board, horizontal, fixed, start, end, index + 1, rack, next, word, playedTiles, seen, generated
+                board,
+                horizontal,
+                fixed,
+                start,
+                end,
+                index + 1,
+                rack,
+                next,
+                word,
+                playedTiles,
+                crossChecks,
+                collector
             );
             word.deleteCharAt(word.length() - 1);
             return;
@@ -194,6 +222,9 @@ public class CandidateGenerator {
             if (next == null) {
                 continue;
             }
+            if (!crossChecks.allowsLetter(horizontal, row, col, letter)) {
+                continue;
+            }
 
             if (rack.hasLetter(letter)) {
                 rack.useLetter(letter);
@@ -201,7 +232,18 @@ public class CandidateGenerator {
                 playedTiles.add(new PlayedTile(letter, row, col));
 
                 buildCandidatesOnSegment(
-                    board, horizontal, fixed, start, end, index + 1, rack, next, word, playedTiles, seen, generated
+                    board,
+                    horizontal,
+                    fixed,
+                    start,
+                    end,
+                    index + 1,
+                    rack,
+                    next,
+                    word,
+                    playedTiles,
+                    crossChecks,
+                    collector
                 );
 
                 playedTiles.remove(playedTiles.size() - 1);
@@ -215,7 +257,18 @@ public class CandidateGenerator {
                 playedTiles.add(new PlayedTile(letter, row, col, true));
 
                 buildCandidatesOnSegment(
-                    board, horizontal, fixed, start, end, index + 1, rack, next, word, playedTiles, seen, generated
+                    board,
+                    horizontal,
+                    fixed,
+                    start,
+                    end,
+                    index + 1,
+                    rack,
+                    next,
+                    word,
+                    playedTiles,
+                    crossChecks,
+                    collector
                 );
 
                 playedTiles.remove(playedTiles.size() - 1);
@@ -255,5 +308,39 @@ public class CandidateGenerator {
     // Returns whether a numeric segment range includes the anchor index.
     private boolean segmentContainsAnchor(int start, int end, int anchorIndex) {
         return anchorIndex >= start && anchorIndex <= end;
+    }
+
+    // Collects deduplicated candidates during generation.
+    private interface CandidateCollector {
+        void accept(MoveCandidate candidate);
+    }
+
+    // Materializes every unique candidate for callers that need the full list.
+    private static final class CandidateListCollector implements CandidateCollector {
+        private final Set<String> seen = new LinkedHashSet<>();
+        private final List<MoveCandidate> generated = new ArrayList<>();
+
+        @Override
+        public void accept(MoveCandidate candidate) {
+            if (seen.add(candidate.key())) {
+                generated.add(candidate);
+            }
+        }
+    }
+
+    // Tracks only the highest-ranked unique candidate during generation.
+    private static final class BestCandidateCollector implements CandidateCollector {
+        private final Set<String> seen = new LinkedHashSet<>();
+        private MoveCandidate best;
+
+        @Override
+        public void accept(MoveCandidate candidate) {
+            if (!seen.add(candidate.key())) {
+                return;
+            }
+            if (best == null || CANDIDATE_ORDER.compare(candidate, best) < 0) {
+                best = candidate;
+            }
+        }
     }
 }

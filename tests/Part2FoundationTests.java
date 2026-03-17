@@ -38,9 +38,11 @@ public class Part2FoundationTests {
         testMoveApplicatorRejectsConflictingPlacements();
         testAnchorFinderReturnsCenterOnEmptyBoard();
         testAnchorFinderCollectsAdjacentSquares();
+        testCrossCheckCacheRestrictsPerpendicularWords();
         testRackTracksLettersAndBlanks();
         testCandidateGeneratorFindsCenterOpeningMoves();
         testCandidateGeneratorUsesExistingTiles();
+        testCandidateGeneratorBestOnlyMatchesSortedList();
         testSolverEngineSelectsBestMove();
         testSolverPrintsExpectedSingleCaseOutput();
         testSolverMatchesProvidedExampleOutput();
@@ -310,6 +312,33 @@ public class Part2FoundationTests {
         check(keys.contains("2,1"), "Expected south anchor");
     }
 
+    private static void testCrossCheckCacheRestrictsPerpendicularWords() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "cab", "ant"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board board = boardFromRows(new String[] {
+            ".. c ..",
+            ".. .. ..",
+            ".. t .."
+        });
+
+        CrossCheckCache crossChecks = new CrossCheckCache(board, dictionary);
+        check(crossChecks.allowsLetter(true, 1, 1, 'a'),
+            "Expected horizontal placement to allow A through vertical CAT");
+        check(!crossChecks.allowsLetter(true, 1, 1, 'o'),
+            "Expected horizontal placement to reject invalid vertical COT");
+
+        Board horizontalBoard = boardFromRows(new String[] {
+            ".. .. ..",
+            "c .. t",
+            ".. .. .."
+        });
+        CrossCheckCache horizontalCrossChecks = new CrossCheckCache(horizontalBoard, dictionary);
+        check(horizontalCrossChecks.allowsLetter(false, 1, 1, 'a'),
+            "Expected vertical placement to allow A through horizontal CAT");
+        check(!horizontalCrossChecks.allowsLetter(false, 1, 1, 'o'),
+            "Expected vertical placement to reject invalid horizontal COT");
+    }
+
     private static void testRackTracksLettersAndBlanks() {
         Rack rack = Rack.fromTray("ab*");
 
@@ -373,6 +402,27 @@ public class Part2FoundationTests {
         check(found, "Expected generator to extend an existing board tile into CAT");
     }
 
+    private static void testCandidateGeneratorBestOnlyMatchesSortedList() throws Exception {
+        Path dict = writeTempDictionary(List.of("cat", "cab", "bat", "tab", "at"));
+        Dictionary dictionary = Dictionary.fromFile(dict.toString());
+        Board board = boardFromRows(new String[] {
+            ".. .. ..",
+            " c .. ..",
+            ".. .. .."
+        });
+
+        CandidateGenerator generator = new CandidateGenerator(dictionary);
+        List<MoveCandidate> allCandidates = generator.generateLegalCandidates(board, "atb");
+        MoveCandidate best = generator.findBestLegalCandidate(board, "atb");
+
+        check(!allCandidates.isEmpty(), "Expected at least one generated candidate");
+        check(best != null, "Expected a best candidate");
+        check(best.key().equals(allCandidates.get(0).key()),
+            "Expected best-only path to match the sorted full candidate list");
+        check(best.score() == allCandidates.get(0).score(),
+            "Expected best-only score to match the leading full candidate");
+    }
+
     private static void testSolverEngineSelectsBestMove() throws Exception {
         Path dict = writeTempDictionary(List.of("cat", "at"));
         Dictionary dictionary = Dictionary.fromFile(dict.toString());
@@ -411,7 +461,8 @@ public class Part2FoundationTests {
             + "Solution Board:\n"
             + ".. .. ..\n"
             + " c  a  t\n"
-            + ".. .. ..\n";
+            + ".. .. ..\n"
+            + "\n";
 
         check(expected.equals(output), "Expected exact single-case solver output");
     }

@@ -26,18 +26,12 @@ public class Solver {
         SolverEngine solverEngine = new SolverEngine(dictionary);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        boolean firstCase = true;
 
         while (true) {
             SolverCase solverCase = parser.readCase(in);
             if (solverCase == null) {
                 break;
             }
-
-            if (!firstCase) {
-                System.out.println();
-            }
-            firstCase = false;
 
             printBoard("Input Board:", solverCase.board());
             System.out.println("Tray: " + solverCase.tray());
@@ -47,11 +41,13 @@ public class Solver {
                 System.out.println("No legal move found");
                 System.out.println("Solution Board:");
                 printBoardRows(solverCase.board());
+                System.out.println();
                 continue;
             }
 
             System.out.println("Solution " + solution.move().mainWord() + " has " + solution.move().score() + " points");
             printBoard("Solution Board:", solution.resultBoard());
+            System.out.println();
         }
     }
 

@@ -3,7 +3,6 @@
  *
  * File purpose: choose the best available move for one solver case.
  */
-import java.util.List;
 
 public class SolverEngine {
     private final CandidateGenerator candidateGenerator;
@@ -26,12 +25,11 @@ public class SolverEngine {
      * @return solver result or null when no legal move is found
      */
     public SolverResult solve(Board board, String tray) {
-        List<MoveCandidate> candidates = candidateGenerator.generateLegalCandidates(board, tray);
-        if (candidates.isEmpty()) {
+        MoveCandidate best = candidateGenerator.findBestLegalCandidate(board, tray);
+        if (best == null) {
             return null;
         }
 
-        MoveCandidate best = candidates.get(0);
         Board resultBoard = moveApplicator.apply(board, best);
         return new SolverResult(best, resultBoard);
     }
