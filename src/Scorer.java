@@ -66,16 +66,7 @@ public class Scorer {
         if (board.isBlankTile(row, col)) {
             return 0;
         }
-        return switch (board.tileAt(row, col)) {
-            case 'a', 'e', 'i', 'l', 'n', 'o', 'r', 's', 't', 'u' -> 1;
-            case 'd', 'g' -> 2;
-            case 'b', 'c', 'm', 'p' -> 3;
-            case 'f', 'h', 'v', 'w', 'y' -> 4;
-            case 'k' -> 5;
-            case 'j', 'x' -> 8;
-            case 'q', 'z' -> 10;
-            default -> 0;
-        };
+        return TileValues.faceValue(board.tileAt(row, col));
     }
 
     // Small coordinate key utility for quick set membership.
