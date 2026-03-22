@@ -20,6 +20,8 @@ public class Part3GameTests {
         testScrabbleGameHumanExchangeUsesBagAndPassesTurn();
         testScrabbleGameComputerTurnUsesSolverMove();
         testScrabbleGameAppliesEndgameLeaveScoring();
+        testScrabbleGameTracksTurnRecords();
+        testScrabbleGameEndsWhenBagIsEmptyAndNeitherPlayerCanMove();
 
         System.out.println("All tests passed.");
     }
@@ -151,6 +153,58 @@ public class Part3GameTests {
         check(game.isGameOver(), "Expected empty bag plus empty rack to trigger endgame");
         check(game.humanPlayer().score() == 15, "Expected human to gain the opponent leave bonus");
         check(game.computerPlayer().score() == -10, "Expected computer to lose its leave value");
+    }
+
+    private static void testScrabbleGameTracksTurnRecords() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        Board board = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. c .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            board,
+            new TileBag(List.of('m', 'n'), new Random(5L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("abc")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("atzzzzz")),
+            true
+        );
+
+        game.exchangeHumanTiles("ac");
+        check(game.turnCount() == 1, "Expected one recorded turn after exchange");
+        check(game.latestTurn().actor() == TurnActor.HUMAN, "Expected human exchange turn actor");
+        check(game.latestTurn().type() == TurnType.EXCHANGE, "Expected exchange turn type");
+        check(game.latestTurn().number() == 1, "Expected first turn number to be 1");
+
+        game.playComputerTurn();
+        check(game.turnCount() == 2, "Expected second recorded turn after computer move");
+        check(game.latestTurn().actor() == TurnActor.COMPUTER, "Expected computer move turn actor");
+        check(game.latestTurn().type() == TurnType.MOVE, "Expected move turn type");
+        check(game.latestTurn().scoreDelta() == 5, "Expected computer move score delta");
+        check(game.latestTurn().play() != null, "Expected move turn to retain resolved play");
+    }
+
+    private static void testScrabbleGameEndsWhenBagIsEmptyAndNeitherPlayerCanMove() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of(), new Random(6L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("qq")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("zz")),
+            true
+        );
+
+        game.passHumanTurn();
+
+        check(game.isGameOver(), "Expected empty-bag game to end when neither player can move");
+        check(game.latestTurn().type() == TurnType.PASS, "Expected the recorded turn to be a pass");
+        check(game.lastStatusMessage().endsWith("Game over."), "Expected game-over summary text");
+        check(game.humanPlayer().score() == -20, "Expected human leave penalty to be applied");
+        check(game.computerPlayer().score() == -20, "Expected computer leave penalty to be applied");
     }
 
     private static Dictionary dictionaryOf(String... words) throws Exception {

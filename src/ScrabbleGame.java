@@ -5,6 +5,7 @@
  */
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -20,17 +21,19 @@ public class ScrabbleGame {
     private final TileBag tileBag;
     private final ScrabblePlayer humanPlayer;
     private final ScrabblePlayer computerPlayer;
+    private final ArrayList<TurnRecord> turnHistory = new ArrayList<>();
 
     private Board board;
     private boolean humanTurn;
     private boolean gameOver;
     private boolean endgameAdjusted;
     private String lastStatusMessage;
+    private int nextTurnNumber = 1;
 
     /**
      * Creates a new standard game using the standard Scrabble board and tile bag.
      *
-     * The human player always goes first in this implementation.
+     * The human player always goes first.
      *
      * @param dictionary loaded game dictionary
      * @param random randomness source for the tile bag
@@ -157,6 +160,15 @@ public class ScrabbleGame {
     }
 
     /**
+     * Returns the number of completed turns.
+     *
+     * @return completed turn count
+     */
+    public int turnCount() {
+        return turnHistory.size();
+    }
+
+    /**
      * Returns the number of tiles left in the bag.
      *
      * @return remaining bag count
@@ -175,6 +187,27 @@ public class ScrabbleGame {
     }
 
     /**
+     * Returns the most recently recorded turn, or null before any turns are taken.
+     *
+     * @return latest turn record or null
+     */
+    public TurnRecord latestTurn() {
+        if (turnHistory.isEmpty()) {
+            return null;
+        }
+        return turnHistory.get(turnHistory.size() - 1);
+    }
+
+    /**
+     * Returns the full completed turn history.
+     *
+     * @return immutable turn history
+     */
+    public List<TurnRecord> turnHistory() {
+        return List.copyOf(turnHistory);
+    }
+
+    /**
      * Applies a human move described by a proposed result board.
      *
      * @param proposedBoard board after the human's placement
@@ -186,7 +219,7 @@ public class ScrabbleGame {
         ResolvedPlay play = moveResolver.resolve(board, proposedBoard, humanPlayer.rack());
         String moveSummary = "Human played " + play.move().mainWord() + " for " + play.score() + " points.";
         applyResolvedPlay(humanPlayer, play);
-        lastStatusMessage = gameOver ? moveSummary + " Game over." : moveSummary;
+        recordTurn(TurnActor.HUMAN, TurnType.MOVE, moveSummary, play.score(), play);
         if (!gameOver) {
             humanTurn = false;
         }
@@ -198,9 +231,9 @@ public class ScrabbleGame {
      */
     public void passHumanTurn() {
         ensureActiveHumanTurn();
-        lastStatusMessage = "Human passed.";
         humanTurn = false;
         updateGameOverState();
+        recordTurn(TurnActor.HUMAN, TurnType.PASS, "Human passed.", 0, null);
     }
 
     /**
@@ -219,9 +252,15 @@ public class ScrabbleGame {
 
         List<Character> removed = humanPlayer.rack().removeLetters(letters);
         humanPlayer.rack().addTiles(tileBag.exchange(removed));
-        lastStatusMessage = "Human exchanged " + letters.length() + " tile(s).";
         humanTurn = false;
         updateGameOverState();
+        recordTurn(
+            TurnActor.HUMAN,
+            TurnType.EXCHANGE,
+            "Human exchanged " + letters.length() + " tile(s).",
+            0,
+            null
+        );
     }
 
     /**
@@ -237,12 +276,14 @@ public class ScrabbleGame {
             if (!computerPlayer.rack().isEmpty() && tileBag.canExchange(computerPlayer.rack().size())) {
                 List<Character> removed = computerPlayer.rack().removeAllTiles();
                 computerPlayer.rack().addTiles(tileBag.exchange(removed));
-                lastStatusMessage = "Computer exchanged its rack.";
+                humanTurn = true;
+                updateGameOverState();
+                recordTurn(TurnActor.COMPUTER, TurnType.EXCHANGE, "Computer exchanged its rack.", 0, null);
             } else {
-                lastStatusMessage = "Computer had no legal move.";
+                humanTurn = true;
+                updateGameOverState();
+                recordTurn(TurnActor.COMPUTER, TurnType.NO_MOVE, "Computer had no legal move.", 0, null);
             }
-            humanTurn = true;
-            updateGameOverState();
             return null;
         }
 
@@ -253,7 +294,7 @@ public class ScrabbleGame {
         ResolvedPlay play = new ResolvedPlay(solved.move(), solved.resultBoard(), formedWords);
         String moveSummary = "Computer played " + play.move().mainWord() + " for " + play.score() + " points.";
         applyResolvedPlay(computerPlayer, play);
-        lastStatusMessage = gameOver ? moveSummary + " Game over." : moveSummary;
+        recordTurn(TurnActor.COMPUTER, TurnType.MOVE, moveSummary, play.score(), play);
         if (!gameOver) {
             humanTurn = true;
         }
@@ -277,7 +318,8 @@ public class ScrabbleGame {
         if (tileBag.remaining() > 0) {
             return;
         }
-        if (!humanPlayer.rack().isEmpty() && !computerPlayer.rack().isEmpty()) {
+        if (!humanPlayer.rack().isEmpty() && !computerPlayer.rack().isEmpty()
+            && (hasLegalMove(humanPlayer) || hasLegalMove(computerPlayer))) {
             return;
         }
 
@@ -295,6 +337,29 @@ public class ScrabbleGame {
 
         gameOver = true;
         endgameAdjusted = true;
+    }
+
+    // Records one completed turn and updates the public status message.
+    private void recordTurn(TurnActor actor, TurnType type, String summary, int scoreDelta, ResolvedPlay play) {
+        lastStatusMessage = gameOver ? summary + " Game over." : summary;
+        turnHistory.add(new TurnRecord(
+            nextTurnNumber++,
+            actor,
+            type,
+            lastStatusMessage,
+            scoreDelta,
+            humanPlayer.score(),
+            computerPlayer.score(),
+            tileBag.remaining(),
+            humanPlayer.rack().trayString(),
+            computerPlayer.rack().trayString(),
+            play
+        ));
+    }
+
+    // Returns whether the given player currently has any legal move available.
+    private boolean hasLegalMove(ScrabblePlayer player) {
+        return solverEngine.solve(board, player.rack().trayString()) != null;
     }
 
     // Computes the remaining face value of a rack.
