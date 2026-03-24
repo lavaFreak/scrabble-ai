@@ -2,6 +2,9 @@
  * Author: Garion
  *
  * UI-facing buffer for one tentative human placement.
+ *
+ * This lets the future JavaFX layer stage letter placement interactively
+ * without mutating the real game board until the move is submitted.
  */
 import java.util.ArrayList;
 import java.util.Comparator;

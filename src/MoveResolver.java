@@ -2,6 +2,9 @@
  * Author: Garion
  *
  * Resolves a board transition into one validated, scored move.
+ *
+ * This is the backend bridge between a UI-generated board proposal and the
+ * existing legality/scoring pipeline from the scorer and solver work.
  */
 import java.util.List;
 

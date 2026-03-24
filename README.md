@@ -1,74 +1,75 @@
-# Project 3 Part 2: Scrabble Solver
+# Project 3: Scrabble
 
-This repository is for **Part 2** of CS 351 Project 3: building a Scrabble solver.
+This repository contains the shared code for CS 351 Project 3:
+- `Scorechecker` for the Part 1 scorer
+- `Solver` for the Part 2 highest-scoring move finder
+- the Part 3 game backend that the JavaFX UI will sit on
 
-## Goal
-Given a board state and a tray of letters, find the **highest-scoring legal move** and print:
-- the input board,
-- the tray,
-- the selected solution word and score,
-- the solution board after placing the move.
+## Current Status
+- Part 1 scorer is implemented and packaged as [Scorechecker.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Scorechecker.jar).
+- Part 2 solver is implemented and packaged as [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
+- Part 3 backend is implemented in shared model/controller classes such as [ScrabbleGame.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/ScrabbleGame.java), [MoveResolver.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/MoveResolver.java), [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java), and [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java).
+- The JavaFX `Scrabble.java` UI entry point is still to be built on top of that backend.
 
-## Input and Output
-Input is provided through **standard input** and may contain multiple test cases until EOF.
+## Project Layout
+- Dictionaries live under [Resources/dictionaries](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/dictionaries).
+- Board and tile configuration files live under [Resources/config](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/config).
+- Example scorer and solver inputs/outputs live under [Resources/examples](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples).
+- The current architecture snapshot is documented in [scrabble-architecture.drawio](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.drawio).
 
-Each solver test case contains:
-1. board size `N`
-2. `N` board rows
-3. one tray line (letters, possibly including `*` for blank tiles)
+## Scorer And Solver
+Both console programs read repeated cases from standard input until EOF.
 
-Output formatting must match the project examples exactly, including labels, spacing, and blank lines.
-
-Reference files:
-1. [`Resources/examples/example_input.txt`](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples/example_input.txt)
-2. [`Resources/examples/example_output.txt`](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples/example_output.txt)
-
-## Part 2 Requirements
-- Enumerate legal placements that can be formed from the tray.
-- Validate candidate moves using Scrabble legality rules.
-- Score each legal move with board multipliers and tile values.
-- Support blank tiles (`*`) correctly.
-- Select the best move according to the Part 2 prompt tie-breaking rules.
-
-## Project Notes
-- Dictionaries are stored under `Resources/dictionaries/`.
-- Board/tile configuration examples are under `Resources/config/`.
-- The Part 1 scorer code in `src/` is intended to be reused/refactored as solver components are added.
-
-## Build And Run
-The submission jars are tracked at the repository root as [Scorechecker.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Scorechecker.jar)
-and [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
-
-Run the scorer exactly in the required format:
+Run the scorer:
 
 ```sh
 java -jar Scorechecker.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_score_input.txt
 ```
 
-Run the solver exactly in the required format:
+Run the solver:
 
 ```sh
 java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_input.txt
 ```
 
-To verify the scorer output against the provided example:
+Verify scorer output against the provided example:
 
 ```sh
 java -jar Scorechecker.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_score_input.txt > /tmp/scorechecker-output.txt
 ruby -e 'expected = File.read("Resources/examples/example_score_output.txt").gsub("\r\n", "\n"); actual = File.read("/tmp/scorechecker-output.txt").gsub("\r\n", "\n"); abort("output mismatch") unless expected == actual'
 ```
 
-To verify the solver output against the provided example:
+Verify solver output against the provided example:
 
 ```sh
 java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_input.txt > /tmp/solver-output.txt
 ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\n", "\n"); actual = File.read("/tmp/solver-output.txt").gsub("\r\n", "\n"); abort("output mismatch") unless expected == actual'
 ```
 
-The solver uses a deterministic highest-score search. If multiple moves tie for best score, it keeps the first
-highest-scoring move encountered, which is allowed by the prompt.
+The solver keeps the first highest-scoring move it encounters when scores tie, which is allowed by the prompt.
 
-The current architecture snapshot is documented in [scrabble-architecture.drawio](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.drawio).
+## Part 3 Backend
+The current game backend supports:
+- human and computer players with independent racks and scores
+- a mutable tile bag with standard Scrabble tile frequencies
+- solver-driven computer turns
+- validated human moves through board transitions or a [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java)
+- passes, exchanges, turn history, and endgame leave scoring
+- immutable UI snapshots through [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java)
+
+This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
+
+## Java Setup
+IntelliJ is configured to use the `zulu-25` JDK, which includes JavaFX modules.
+
+If you want terminal `java` and `javac` to use the same JDK as the IDE, use:
+
+```sh
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-25.jdk/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+This matters for Part 3, because plain shell `javac` against a non-FX JDK will fail on `javafx.*` imports.
 
 ## Tests
 Compile and run the current regression suites from the repository root:
@@ -77,4 +78,5 @@ Compile and run the current regression suites from the repository root:
 javac -d build/classes src/*.java tests/*.java
 java -cp build/classes ScorecheckerSoFarTests
 java -cp build/classes Part2FoundationTests
+java -cp build/classes Part3GameTests
 ```

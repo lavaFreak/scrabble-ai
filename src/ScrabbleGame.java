@@ -2,6 +2,9 @@
  * Author: Garion
  *
  * Shared Part 3 game controller for a human-vs-computer Scrabble match.
+ *
+ * This class owns the mutable match state and exposes UI-friendly operations
+ * for human moves, passes, exchanges, computer turns, snapshots, and turn history.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,6 +75,10 @@ public class ScrabbleGame {
 
     /**
      * Creates a game from explicit state, primarily for tests and future UI wiring.
+     *
+     * This constructor is intentionally low-level so the JavaFX app can either
+     * use {@link #createStandardGame(Dictionary, Random)} or inject custom state
+     * for save/load or deterministic testing.
      *
      * @param dictionary loaded game dictionary
      * @param board starting board
@@ -189,6 +196,8 @@ public class ScrabbleGame {
     /**
      * Returns an immutable snapshot of the current game state for UI rendering.
      *
+     * The returned object is meant to be consumed by the future JavaFX view layer.
+     *
      * @return game snapshot
      */
     public GameSnapshot snapshot() {
@@ -248,6 +257,9 @@ public class ScrabbleGame {
 
     /**
      * Applies a human move described by a placement buffer preview.
+     *
+     * This is the intended entry point for the JavaFX board editor once the UI
+     * starts staging tentative tiles before submitting them.
      *
      * @param placementBuffer pending buffered placements
      * @return resolved move details

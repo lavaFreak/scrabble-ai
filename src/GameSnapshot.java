@@ -2,6 +2,9 @@
  * Author: Garion
  *
  * Immutable UI-facing snapshot of the current game state.
+ *
+ * The view layer should read from this object instead of directly querying
+ * mutable game state throughout the scene graph.
  */
 public class GameSnapshot {
     private final Board board;
