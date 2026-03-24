@@ -17,11 +17,15 @@ public class Part3GameTests {
         testTileBagStandardCount();
         testRackStateTracksLettersAndPlayedBlanks();
         testMoveResolverValidatesAndScoresHumanMove();
+        testPlacementBufferBuildsPreviewBoard();
+        testPlacementBufferRejectsFixedTileOverwrite();
         testScrabbleGameHumanExchangeUsesBagAndPassesTurn();
         testScrabbleGameComputerTurnUsesSolverMove();
         testScrabbleGameAppliesEndgameLeaveScoring();
         testScrabbleGameTracksTurnRecords();
         testScrabbleGameEndsWhenBagIsEmptyAndNeitherPlayerCanMove();
+        testScrabbleGameSnapshotReflectsCurrentState();
+        testScrabbleGameAcceptsPlacementBufferMoves();
 
         System.out.println("All tests passed.");
     }
@@ -71,6 +75,36 @@ public class Part3GameTests {
         check(play.playedTiles().size() == 2, "Expected two newly played tiles");
     }
 
+    private static void testPlacementBufferBuildsPreviewBoard() {
+        Board board = emptyPlainBoard(5);
+        PlacementBuffer buffer = new PlacementBuffer(board);
+
+        buffer.placeLetter(2, 1, 'c');
+        buffer.placeBlank(2, 2, 'a');
+
+        Board preview = buffer.previewBoard();
+        check(buffer.placementCount() == 2, "Expected two pending placements");
+        check(preview.isTile(2, 1) && preview.tileAt(2, 1) == 'c', "Expected preview letter tile");
+        check(preview.isTile(2, 2) && preview.tileAt(2, 2) == 'a', "Expected preview blank letter");
+        check(preview.isBlankTile(2, 2), "Expected preview blank tile marker to be preserved");
+    }
+
+    private static void testPlacementBufferRejectsFixedTileOverwrite() {
+        PlacementBuffer buffer = new PlacementBuffer(boardFromRows(new String[] {
+            ".. .. ..",
+            ".. c ..",
+            ".. .. .."
+        }));
+
+        boolean threw = false;
+        try {
+            buffer.placeLetter(1, 1, 'a');
+        } catch (IllegalArgumentException ex) {
+            threw = ex.getMessage().contains("existing board tile");
+        }
+        check(threw, "Expected placement buffer to reject overwriting fixed tiles");
+    }
+
     private static void testScrabbleGameHumanExchangeUsesBagAndPassesTurn() throws Exception {
         Dictionary dictionary = dictionaryOf("cat");
         ScrabbleGame game = new ScrabbleGame(
@@ -105,7 +139,7 @@ public class Part3GameTests {
         ScrabbleGame game = new ScrabbleGame(
             dictionary,
             board,
-            new TileBag(List.of('m', 'n'), new Random(3L)),
+            new TileBag(List.of('m', 'n', 'o', 'p'), new Random(3L)),
             new ScrabblePlayer("Human", true, RackState.fromTray("qqqqqqq")),
             new ScrabblePlayer("Computer", false, RackState.fromTray("atzzzzz")),
             false
@@ -205,6 +239,56 @@ public class Part3GameTests {
         check(game.lastStatusMessage().endsWith("Game over."), "Expected game-over summary text");
         check(game.humanPlayer().score() == -20, "Expected human leave penalty to be applied");
         check(game.computerPlayer().score() == -20, "Expected computer leave penalty to be applied");
+    }
+
+    private static void testScrabbleGameSnapshotReflectsCurrentState() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of('x', 'y', 'z'), new Random(7L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("abc")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("def")),
+            true
+        );
+
+        game.exchangeHumanTiles("ac");
+        GameSnapshot snapshot = game.snapshot();
+
+        check(snapshot.board().size() == 5, "Expected snapshot board to match game board");
+        check("bxy".equals(snapshot.humanRack()), "Expected snapshot to expose updated human rack");
+        check("def".equals(snapshot.computerRack()), "Expected snapshot to expose computer rack");
+        check(!snapshot.isHumanTurn(), "Expected snapshot turn flag to reflect the exchange");
+        check(snapshot.latestTurn() != null && snapshot.latestTurn().type() == TurnType.EXCHANGE,
+            "Expected snapshot to expose the latest turn record");
+    }
+
+    private static void testScrabbleGameAcceptsPlacementBufferMoves() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        Board board = boardFromRows(new String[] {
+            ".. .. .. .. ..",
+            ".. .. .. .. ..",
+            ".. c .. .. ..",
+            ".. .. .. .. ..",
+            ".. .. .. .. .."
+        });
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            board,
+            new TileBag(List.of(), new Random(8L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("at")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("z")),
+            true
+        );
+        PlacementBuffer buffer = new PlacementBuffer(game.board());
+        buffer.placeLetter(2, 2, 'a');
+        buffer.placeLetter(2, 3, 't');
+
+        ResolvedPlay play = game.playHumanMove(buffer);
+
+        check("cat".equals(play.move().mainWord()), "Expected placement-buffer move to resolve to cat");
+        check(game.board().isTile(2, 3) && game.board().tileAt(2, 3) == 't',
+            "Expected game board to reflect buffered move");
     }
 
     private static Dictionary dictionaryOf(String... words) throws Exception {

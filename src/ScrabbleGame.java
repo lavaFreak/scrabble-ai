@@ -187,6 +187,26 @@ public class ScrabbleGame {
     }
 
     /**
+     * Returns an immutable snapshot of the current game state for UI rendering.
+     *
+     * @return game snapshot
+     */
+    public GameSnapshot snapshot() {
+        return new GameSnapshot(
+            board,
+            humanPlayer.rack().trayString(),
+            computerPlayer.rack().trayString(),
+            humanPlayer.score(),
+            computerPlayer.score(),
+            tileBag.remaining(),
+            humanTurn,
+            gameOver,
+            lastStatusMessage,
+            latestTurn()
+        );
+    }
+
+    /**
      * Returns the most recently recorded turn, or null before any turns are taken.
      *
      * @return latest turn record or null
@@ -224,6 +244,22 @@ public class ScrabbleGame {
             humanTurn = false;
         }
         return play;
+    }
+
+    /**
+     * Applies a human move described by a placement buffer preview.
+     *
+     * @param placementBuffer pending buffered placements
+     * @return resolved move details
+     */
+    public ResolvedPlay playHumanMove(PlacementBuffer placementBuffer) {
+        if (placementBuffer == null) {
+            throw new IllegalArgumentException("placement buffer is required");
+        }
+        if (!sameBoard(placementBuffer.baseBoard(), board)) {
+            throw new IllegalArgumentException("placement buffer is based on a different board state");
+        }
+        return playHumanMove(placementBuffer.previewBoard());
     }
 
     /**
@@ -360,6 +396,21 @@ public class ScrabbleGame {
     // Returns whether the given player currently has any legal move available.
     private boolean hasLegalMove(ScrabblePlayer player) {
         return solverEngine.solve(board, player.rack().trayString()) != null;
+    }
+
+    // Returns whether two boards have identical raw tokens.
+    private boolean sameBoard(Board first, Board second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (int row = 0; row < first.size(); row++) {
+            for (int col = 0; col < first.size(); col++) {
+                if (!first.get(row, col).equals(second.get(row, col))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Computes the remaining face value of a rack.
