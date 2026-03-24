@@ -59,6 +59,17 @@ The current game backend supports:
 
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
 
+## Scrabble UI Dictionary Behavior
+The JavaFX game in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) accepts an optional dictionary path as its first command-line argument.
+
+If no argument is provided, it defaults to:
+
+```text
+Resources/dictionaries/dictionary.txt
+```
+
+If you want to launch the UI with a different dictionary, pass the path explicitly when running `Scrabble`.
+
 ## Java Setup
 IntelliJ is configured to use the `zulu-25` JDK, which includes JavaFX modules.
 
