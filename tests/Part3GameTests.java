@@ -26,6 +26,7 @@ public class Part3GameTests {
         testScrabbleGameAppliesEndgameLeaveScoring();
         testScrabbleGameTracksTurnRecords();
         testScrabbleGameEndsWhenBagIsEmptyAndNeitherPlayerCanMove();
+        testScrabbleGameEndsAfterSixConsecutiveScorelessTurns();
         testScrabbleGameSnapshotReflectsCurrentState();
         testScrabbleGameAcceptsPlacementBufferMoves();
         testScrabbleGameReportsWinnerSummary();
@@ -244,6 +245,31 @@ public class Part3GameTests {
         check(game.lastStatusMessage().endsWith("Game over."), "Expected game-over summary text");
         check(game.humanPlayer().score() == -20, "Expected human leave penalty to be applied");
         check(game.computerPlayer().score() == -20, "Expected computer leave penalty to be applied");
+    }
+
+    private static void testScrabbleGameEndsAfterSixConsecutiveScorelessTurns() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of('q', 'z', 'x', 'j', 'q', 'z'), new Random(12L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("qq")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("zz")),
+            true
+        );
+
+        for (int cycle = 0; cycle < 3; cycle++) {
+            game.exchangeHumanTiles(game.humanPlayer().rack().trayString());
+            game.playComputerTurn();
+        }
+
+        check(game.isGameOver(), "Expected six scoreless turns to end the game");
+        check(game.turnCount() == 6, "Expected exactly six turns before termination");
+        check(game.latestTurn().type() == TurnType.EXCHANGE, "Expected final scoreless turn to be recorded");
+        check(game.lastStatusMessage().endsWith("Game over."), "Expected scoreless-turn game-over summary text");
+        check(game.tileBagRemaining() == 6, "Expected exchanges to leave the bag size unchanged");
+        check(game.humanPlayer().score() == -20, "Expected human leave penalty after scoreless-turn ending");
+        check(game.computerPlayer().score() == -20, "Expected computer leave penalty after scoreless-turn ending");
     }
 
     private static void testScrabbleGameSnapshotReflectsCurrentState() throws Exception {

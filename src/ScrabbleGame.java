@@ -16,6 +16,7 @@ import java.util.Random;
 
 public class ScrabbleGame {
     private static final int RACK_SIZE = 7;
+    private static final int MAX_CONSECUTIVE_SCORELESS_TURNS = 6;
     private static final Path STANDARD_BOARD_PATH = Path.of("Resources/config/scrabble_board.txt");
 
     private final SolverEngine solverEngine;
@@ -30,6 +31,7 @@ public class ScrabbleGame {
     private boolean humanTurn;
     private boolean gameOver;
     private boolean endgameAdjusted;
+    private int consecutiveScorelessTurns;
     private String lastStatusMessage;
     private int nextTurnNumber = 1;
     private Integer humanScoreBeforeEndgame;
@@ -295,6 +297,7 @@ public class ScrabbleGame {
         ResolvedPlay play = moveResolver.resolve(board, proposedBoard, humanPlayer.rack());
         String moveSummary = "Human played " + play.move().mainWord() + " for " + play.score() + " points.";
         applyResolvedPlay(humanPlayer, play);
+        updateScorelessTurnState(play.score());
         recordTurn(TurnActor.HUMAN, TurnType.MOVE, moveSummary, play.score(), play);
         if (!gameOver) {
             humanTurn = false;
@@ -328,6 +331,7 @@ public class ScrabbleGame {
         ensureActiveHumanTurn();
         humanTurn = false;
         updateGameOverState();
+        updateScorelessTurnState(0);
         recordTurn(TurnActor.HUMAN, TurnType.PASS, "Human passed.", 0, null);
     }
 
@@ -349,6 +353,7 @@ public class ScrabbleGame {
         humanPlayer.rack().addTiles(tileBag.exchange(removed));
         humanTurn = false;
         updateGameOverState();
+        updateScorelessTurnState(0);
         recordTurn(
             TurnActor.HUMAN,
             TurnType.EXCHANGE,
@@ -373,10 +378,12 @@ public class ScrabbleGame {
                 computerPlayer.rack().addTiles(tileBag.exchange(removed));
                 humanTurn = true;
                 updateGameOverState();
+                updateScorelessTurnState(0);
                 recordTurn(TurnActor.COMPUTER, TurnType.EXCHANGE, "Computer exchanged its rack.", 0, null);
             } else {
                 humanTurn = true;
                 updateGameOverState();
+                updateScorelessTurnState(0);
                 recordTurn(TurnActor.COMPUTER, TurnType.NO_MOVE, "Computer had no legal move.", 0, null);
             }
             return null;
@@ -389,6 +396,7 @@ public class ScrabbleGame {
         ResolvedPlay play = new ResolvedPlay(solved.move(), solved.resultBoard(), formedWords);
         String moveSummary = "Computer played " + play.move().mainWord() + " for " + play.score() + " points.";
         applyResolvedPlay(computerPlayer, play);
+        updateScorelessTurnState(play.score());
         recordTurn(TurnActor.COMPUTER, TurnType.MOVE, moveSummary, play.score(), play);
         if (!gameOver) {
             humanTurn = true;
@@ -417,6 +425,26 @@ public class ScrabbleGame {
             && (hasLegalMove(humanPlayer) || hasLegalMove(computerPlayer))) {
             return;
         }
+        applyEndgameAdjustments(true);
+    }
+
+    // Ends the game after repeated scoreless turns regardless of bag state.
+    private void updateScorelessTurnState(int scoreDelta) {
+        if (scoreDelta == 0) {
+            consecutiveScorelessTurns++;
+        } else {
+            consecutiveScorelessTurns = 0;
+        }
+        if (!gameOver && consecutiveScorelessTurns >= MAX_CONSECUTIVE_SCORELESS_TURNS) {
+            applyEndgameAdjustments(false);
+        }
+    }
+
+    // Applies rack leave adjustments for any terminal state.
+    private void applyEndgameAdjustments(boolean awardEmptyRackBonus) {
+        if (endgameAdjusted) {
+            return;
+        }
 
         int humanLeave = rackLeaveValue(humanPlayer.rack());
         int computerLeave = rackLeaveValue(computerPlayer.rack());
@@ -425,11 +453,13 @@ public class ScrabbleGame {
 
         humanPlayer.addScore(-humanLeave);
         computerPlayer.addScore(-computerLeave);
-        if (humanPlayer.rack().isEmpty()) {
-            humanPlayer.addScore(computerLeave);
-        }
-        if (computerPlayer.rack().isEmpty()) {
-            computerPlayer.addScore(humanLeave);
+        if (awardEmptyRackBonus) {
+            if (humanPlayer.rack().isEmpty()) {
+                humanPlayer.addScore(computerLeave);
+            }
+            if (computerPlayer.rack().isEmpty()) {
+                computerPlayer.addScore(humanLeave);
+            }
         }
 
         gameOver = true;

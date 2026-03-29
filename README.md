@@ -10,6 +10,7 @@ This repository contains the shared code for CS 351 Project 3:
 - Part 2 solver is implemented and packaged as [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
 - Part 3 backend is implemented in shared model/controller classes such as [ScrabbleGame.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/ScrabbleGame.java), [MoveResolver.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/MoveResolver.java), [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java), and [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java).
 - The JavaFX game shell is implemented in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) and currently supports board rendering, rack interaction, passes, exchanges, blank-tile letter selection, computer turns, and turn-history display.
+- The current backend has also been stress-tested with large solver-vs-solver self-play batches, including a 1000-game run on the default dictionary and 500-game runs on constrained edge-case dictionaries.
 
 ## Project Layout
 - Dictionaries live under [Resources/dictionaries](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/dictionaries).
@@ -54,10 +55,30 @@ The current game backend supports:
 - a mutable tile bag with standard Scrabble tile frequencies
 - solver-driven computer turns
 - validated human moves through board transitions or a [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java)
-- passes, exchanges, turn history, and endgame leave scoring
+- passes, exchanges, turn history, the standard six-consecutive-scoreless-turn ending, and endgame leave scoring
 - immutable UI snapshots through [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java)
 
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
+
+## Self-Play Stress Testing
+There is also a local-only solver-vs-solver harness in [local/ScrabbleSelfPlay.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/local/ScrabbleSelfPlay.java) for long regression runs and edge-case audits.
+
+Compile the backend, tests, and harness without the JavaFX shell:
+
+```sh
+javac -d build/selfplay $(find src -name '*.java' ! -name 'Scrabble.java' -print) $(find tests -name '*.java' -print) local/ScrabbleSelfPlay.java
+```
+
+Run a self-play batch:
+
+```sh
+java -cp build/selfplay ScrabbleSelfPlay 100 Resources/dictionaries/dictionary.txt 50000
+```
+
+Recent validation runs completed cleanly at these sizes:
+- `1000` games with `Resources/dictionaries/dictionary.txt`
+- `500` games with `Resources/dictionaries/animals.txt`
+- `500` games with `local/tiny_dictionary.txt`
 
 ## Scrabble UI
 Run the JavaFX game from IntelliJ with the `zulu-25` SDK, or from the terminal after exporting `JAVA_HOME` to the Zulu FX JDK and compiling the sources:
@@ -108,4 +129,13 @@ javac -d build/classes src/*.java tests/*.java
 java -cp build/classes ScorecheckerSoFarTests
 java -cp build/classes Part2FoundationTests
 java -cp build/classes Part3GameTests
+```
+
+For backend-only regression and stress runs without compiling JavaFX:
+
+```sh
+javac -d build/selfplay $(find src -name '*.java' ! -name 'Scrabble.java' -print) $(find tests -name '*.java' -print) local/ScrabbleSelfPlay.java
+java -cp build/selfplay ScorecheckerSoFarTests
+java -cp build/selfplay Part2FoundationTests
+java -cp build/selfplay Part3GameTests
 ```
