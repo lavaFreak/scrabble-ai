@@ -16,6 +16,7 @@ public class GameSnapshot {
     private final boolean humanTurn;
     private final boolean gameOver;
     private final String statusMessage;
+    private final String winnerSummary;
     private final TurnRecord latestTurn;
 
     /**
@@ -30,6 +31,7 @@ public class GameSnapshot {
      * @param humanTurn true when the human acts next
      * @param gameOver true when the game is over
      * @param statusMessage latest status text
+     * @param winnerSummary winner text when the game is over, otherwise null
      * @param latestTurn latest completed turn, or null
      */
     public GameSnapshot(
@@ -42,6 +44,7 @@ public class GameSnapshot {
         boolean humanTurn,
         boolean gameOver,
         String statusMessage,
+        String winnerSummary,
         TurnRecord latestTurn
     ) {
         this.board = board;
@@ -53,6 +56,7 @@ public class GameSnapshot {
         this.humanTurn = humanTurn;
         this.gameOver = gameOver;
         this.statusMessage = statusMessage;
+        this.winnerSummary = winnerSummary;
         this.latestTurn = latestTurn;
     }
 
@@ -135,6 +139,15 @@ public class GameSnapshot {
      */
     public String statusMessage() {
         return statusMessage;
+    }
+
+    /**
+     * Returns the winner summary when the game is over.
+     *
+     * @return winner summary or null while the game is still active
+     */
+    public String winnerSummary() {
+        return winnerSummary;
     }
 
     /**

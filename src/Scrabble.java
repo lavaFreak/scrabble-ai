@@ -43,8 +43,11 @@ public class Scrabble extends Application {
     private static final double CELL_SIZE = 42.0;
     private static final double RACK_TILE_WIDTH = 58.0;
     private static final double RACK_TILE_HEIGHT = 76.0;
+    private static final String SESSION_TAG = "human-vs-computer";
 
     private ScrabbleGame game;
+    private GameLogWriter gameLogWriter;
+    private String dictionaryPath = DEFAULT_DICTIONARY;
 
     private GridPane boardGrid;
     private FlowPane rackPane;
@@ -81,7 +84,9 @@ public class Scrabble extends Application {
     @Override
     public void start(Stage stage) {
         try {
+            dictionaryPath = resolveDictionaryPath();
             game = ScrabbleGame.createStandardGame(loadDictionary(), new Random());
+            gameLogWriter = GameLogWriter.createTimestamped(SESSION_TAG, dictionaryPath);
         } catch (IOException ex) {
             showFatalError("Unable to start Scrabble", ex.getMessage());
             return;
@@ -97,11 +102,23 @@ public class Scrabble extends Application {
         refreshView();
     }
 
-    // Loads the dictionary from the first CLI argument or falls back to SOWPODS.
+    @Override
+    public void stop() throws Exception {
+        if (gameLogWriter != null) {
+            gameLogWriter.close();
+        }
+        super.stop();
+    }
+
+    // Loads the dictionary from the first CLI argument or falls back to dictionary.txt.
     private Dictionary loadDictionary() throws IOException {
-        List<String> raw = getParameters().getRaw();
-        String dictionaryPath = raw.isEmpty() ? DEFAULT_DICTIONARY : raw.get(0);
         return Dictionary.fromFile(dictionaryPath);
+    }
+
+    // Resolves the active dictionary path from CLI args.
+    private String resolveDictionaryPath() {
+        List<String> raw = getParameters().getRaw();
+        return raw.isEmpty() ? DEFAULT_DICTIONARY : raw.get(0);
     }
 
     // Builds the top-level scene layout.
@@ -261,6 +278,20 @@ public class Scrabble extends Application {
         renderHistory(snapshot);
         updateLabels(snapshot);
         updateControls(snapshot);
+        syncGameLog(snapshot);
+    }
+
+    // Appends any newly completed game state to the session log.
+    private void syncGameLog(GameSnapshot snapshot) {
+        if (gameLogWriter == null) {
+            return;
+        }
+        try {
+            gameLogWriter.sync(snapshot);
+        } catch (IOException ex) {
+            System.err.println("Unable to write game log: " + ex.getMessage());
+            gameLogWriter = null;
+        }
     }
 
     // Rebuilds the board grid, using staged placements when present.
@@ -344,15 +375,22 @@ public class Scrabble extends Application {
         boolean exchangeSelected = !exchangeIndexes.isEmpty();
         boolean exchangeMode = exchangeModeButton.isSelected();
         boolean selectionActive = selectedRackIndex != null;
+        boolean exchangeAvailable = game.canExchangeCount(1);
+        boolean exchangeSelectionAllowed = game.canExchangeCount(exchangeIndexes.size());
 
-        exchangeModeButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn);
+        exchangeModeButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn || !exchangeAvailable);
         playMoveButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn || exchangeMode || !moveBuffered);
         clearButton.setDisable(
             snapshot.isGameOver() || computerTurnRunning || (!moveBuffered && !exchangeSelected && !selectionActive)
         );
         passButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn);
         exchangeButton.setDisable(
-            snapshot.isGameOver() || computerTurnRunning || !humanTurn || !exchangeMode || !exchangeSelected
+            snapshot.isGameOver()
+                || computerTurnRunning
+                || !humanTurn
+                || !exchangeMode
+                || !exchangeSelected
+                || !exchangeSelectionAllowed
         );
         computerTurnButton.setDisable(snapshot.isGameOver() || computerTurnRunning || humanTurn);
     }
@@ -499,6 +537,12 @@ public class Scrabble extends Application {
 
         ArrayList<Integer> indices = new ArrayList<>(exchangeIndexes);
         indices.sort(Comparator.naturalOrder());
+        if (!game.canExchangeCount(indices.size())) {
+            interactionOverride = "Not enough tiles remain in the bag to exchange " + indices.size() + " tile(s).";
+            refreshView();
+            return;
+        }
+
         StringBuilder letters = new StringBuilder();
         for (int index : indices) {
             letters.append(snapshot.humanRack().charAt(index));
@@ -644,7 +688,7 @@ public class Scrabble extends Application {
             return interactionOverride;
         }
         if (snapshot.isGameOver()) {
-            return "The match is complete.";
+            return snapshot.winnerSummary();
         }
         if (computerTurnRunning) {
             return "Computer is searching for the best move...";
@@ -652,9 +696,15 @@ public class Scrabble extends Application {
         if (!snapshot.isHumanTurn()) {
             return "Computer turn is ready. Use the button if it has not started yet.";
         }
+        if (!game.canExchangeCount(1)) {
+            return "Select a rack tile, then click empty board squares to stage your move. Exchanges are unavailable because the bag is empty.";
+        }
         if (exchangeModeButton.isSelected()) {
             if (exchangeIndexes.isEmpty()) {
                 return "Exchange mode: click rack tiles to choose which ones to swap.";
+            }
+            if (!game.canExchangeCount(exchangeIndexes.size())) {
+                return "Exchange mode: only " + snapshot.tileBagRemaining() + " tile(s) remain in the bag.";
             }
             return "Exchange mode: " + exchangeIndexes.size() + " tile(s) selected.";
         }

@@ -32,6 +32,8 @@ public class ScrabbleGame {
     private boolean endgameAdjusted;
     private String lastStatusMessage;
     private int nextTurnNumber = 1;
+    private Integer humanScoreBeforeEndgame;
+    private Integer computerScoreBeforeEndgame;
 
     /**
      * Creates a new standard game using the standard Scrabble board and tile bag.
@@ -126,7 +128,7 @@ public class ScrabbleGame {
      *
      * @return current board state
      */
-    public Board board() {
+    public synchronized Board board() {
         return board;
     }
 
@@ -135,7 +137,7 @@ public class ScrabbleGame {
      *
      * @return human player
      */
-    public ScrabblePlayer humanPlayer() {
+    public synchronized ScrabblePlayer humanPlayer() {
         return humanPlayer;
     }
 
@@ -144,7 +146,7 @@ public class ScrabbleGame {
      *
      * @return computer player
      */
-    public ScrabblePlayer computerPlayer() {
+    public synchronized ScrabblePlayer computerPlayer() {
         return computerPlayer;
     }
 
@@ -153,7 +155,7 @@ public class ScrabbleGame {
      *
      * @return true when the human should act next
      */
-    public boolean isHumanTurn() {
+    public synchronized boolean isHumanTurn() {
         return humanTurn;
     }
 
@@ -162,7 +164,7 @@ public class ScrabbleGame {
      *
      * @return true when endgame scoring has been applied
      */
-    public boolean isGameOver() {
+    public synchronized boolean isGameOver() {
         return gameOver;
     }
 
@@ -171,7 +173,7 @@ public class ScrabbleGame {
      *
      * @return completed turn count
      */
-    public int turnCount() {
+    public synchronized int turnCount() {
         return turnHistory.size();
     }
 
@@ -180,8 +182,18 @@ public class ScrabbleGame {
      *
      * @return remaining bag count
      */
-    public int tileBagRemaining() {
+    public synchronized int tileBagRemaining() {
         return tileBag.remaining();
+    }
+
+    /**
+     * Returns whether the bag can support exchanging the requested number of tiles.
+     *
+     * @param count number of tiles to exchange
+     * @return true when the bag can replace that many tiles
+     */
+    public synchronized boolean canExchangeCount(int count) {
+        return tileBag.canExchange(count);
     }
 
     /**
@@ -189,7 +201,7 @@ public class ScrabbleGame {
      *
      * @return latest status
      */
-    public String lastStatusMessage() {
+    public synchronized String lastStatusMessage() {
         return lastStatusMessage;
     }
 
@@ -200,7 +212,7 @@ public class ScrabbleGame {
      *
      * @return game snapshot
      */
-    public GameSnapshot snapshot() {
+    public synchronized GameSnapshot snapshot() {
         return new GameSnapshot(
             board,
             humanPlayer.rack().trayString(),
@@ -211,8 +223,43 @@ public class ScrabbleGame {
             humanTurn,
             gameOver,
             lastStatusMessage,
+            gameOver ? winnerSummary() : null,
             latestTurn()
         );
+    }
+
+    /**
+     * Returns a winner summary once the game has ended.
+     *
+     * Final-score ties are broken using the scores before endgame leave adjustments,
+     * as described in the project prompt.
+     *
+     * @return winner summary, or null while the game is still active
+     */
+    public synchronized String winnerSummary() {
+        if (!gameOver) {
+            return null;
+        }
+
+        int humanFinal = humanPlayer.score();
+        int computerFinal = computerPlayer.score();
+        if (humanFinal > computerFinal) {
+            return humanPlayer.name() + " wins " + humanFinal + " to " + computerFinal + ".";
+        }
+        if (computerFinal > humanFinal) {
+            return computerPlayer.name() + " wins " + computerFinal + " to " + humanFinal + ".";
+        }
+
+        if (humanScoreBeforeEndgame != null && computerScoreBeforeEndgame != null) {
+            if (humanScoreBeforeEndgame > computerScoreBeforeEndgame) {
+                return humanPlayer.name() + " wins the tie-break " + humanFinal + " to " + computerFinal + ".";
+            }
+            if (computerScoreBeforeEndgame > humanScoreBeforeEndgame) {
+                return computerPlayer.name() + " wins the tie-break " + computerFinal + " to " + humanFinal + ".";
+            }
+        }
+
+        return "The game is tied at " + humanFinal + " points each.";
     }
 
     /**
@@ -220,7 +267,7 @@ public class ScrabbleGame {
      *
      * @return latest turn record or null
      */
-    public TurnRecord latestTurn() {
+    public synchronized TurnRecord latestTurn() {
         if (turnHistory.isEmpty()) {
             return null;
         }
@@ -232,7 +279,7 @@ public class ScrabbleGame {
      *
      * @return immutable turn history
      */
-    public List<TurnRecord> turnHistory() {
+    public synchronized List<TurnRecord> turnHistory() {
         return List.copyOf(turnHistory);
     }
 
@@ -242,7 +289,7 @@ public class ScrabbleGame {
      * @param proposedBoard board after the human's placement
      * @return resolved move details
      */
-    public ResolvedPlay playHumanMove(Board proposedBoard) {
+    public synchronized ResolvedPlay playHumanMove(Board proposedBoard) {
         ensureActiveHumanTurn();
 
         ResolvedPlay play = moveResolver.resolve(board, proposedBoard, humanPlayer.rack());
@@ -264,7 +311,7 @@ public class ScrabbleGame {
      * @param placementBuffer pending buffered placements
      * @return resolved move details
      */
-    public ResolvedPlay playHumanMove(PlacementBuffer placementBuffer) {
+    public synchronized ResolvedPlay playHumanMove(PlacementBuffer placementBuffer) {
         if (placementBuffer == null) {
             throw new IllegalArgumentException("placement buffer is required");
         }
@@ -277,7 +324,7 @@ public class ScrabbleGame {
     /**
      * Lets the human pass the turn without penalty.
      */
-    public void passHumanTurn() {
+    public synchronized void passHumanTurn() {
         ensureActiveHumanTurn();
         humanTurn = false;
         updateGameOverState();
@@ -289,7 +336,7 @@ public class ScrabbleGame {
      *
      * @param letters rack letters to exchange
      */
-    public void exchangeHumanTiles(String letters) {
+    public synchronized void exchangeHumanTiles(String letters) {
         ensureActiveHumanTurn();
         if (letters == null || letters.isEmpty()) {
             throw new IllegalArgumentException("letters are required");
@@ -316,7 +363,7 @@ public class ScrabbleGame {
      *
      * @return resolved move details when a move was played, otherwise null
      */
-    public ResolvedPlay playComputerTurn() {
+    public synchronized ResolvedPlay playComputerTurn() {
         ensureActiveComputerTurn();
 
         SolverResult solved = solverEngine.solve(board, computerPlayer.rack().trayString());
@@ -373,6 +420,8 @@ public class ScrabbleGame {
 
         int humanLeave = rackLeaveValue(humanPlayer.rack());
         int computerLeave = rackLeaveValue(computerPlayer.rack());
+        humanScoreBeforeEndgame = humanPlayer.score();
+        computerScoreBeforeEndgame = computerPlayer.score();
 
         humanPlayer.addScore(-humanLeave);
         computerPlayer.addScore(-computerLeave);

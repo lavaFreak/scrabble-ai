@@ -9,7 +9,7 @@ This repository contains the shared code for CS 351 Project 3:
 - Part 1 scorer is implemented and packaged as [Scorechecker.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Scorechecker.jar).
 - Part 2 solver is implemented and packaged as [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
 - Part 3 backend is implemented in shared model/controller classes such as [ScrabbleGame.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/ScrabbleGame.java), [MoveResolver.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/MoveResolver.java), [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java), and [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java).
-- The JavaFX `Scrabble.java` UI entry point is still to be built on top of that backend.
+- The JavaFX game shell is implemented in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) and currently supports board rendering, rack interaction, passes, exchanges, blank-tile letter selection, computer turns, and turn-history display.
 
 ## Project Layout
 - Dictionaries live under [Resources/dictionaries](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/dictionaries).
@@ -58,6 +58,24 @@ The current game backend supports:
 - immutable UI snapshots through [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java)
 
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
+
+## Scrabble UI
+Run the JavaFX game from IntelliJ with the `zulu-25` SDK, or from the terminal after exporting `JAVA_HOME` to the Zulu FX JDK and compiling the sources:
+
+```sh
+javac -d build/classes src/*.java tests/*.java
+java -cp build/classes Scrabble
+```
+
+You can also pass a dictionary path explicitly:
+
+```sh
+java -cp build/classes Scrabble Resources/dictionaries/sowpods.txt
+```
+
+The current Part 3 implementation intentionally lets the human player go first, which the prompt allows as long as that choice is documented.
+
+Each JavaFX game session also writes a move log under `game-logs/`. That directory is ignored by git so generated logs stay local.
 
 ## Scrabble UI Dictionary Behavior
 The JavaFX game in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) accepts an optional dictionary path as its first command-line argument.

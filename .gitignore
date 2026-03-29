@@ -10,6 +10,7 @@ bin/
 
 # Logs
 *.log
+game-logs/
 
 # IntelliJ IDEA
 .idea/
@@ -55,6 +56,9 @@ build_submission_jars.sh
 
 # Generated grader/test outputs
 test_results/
+
+# Local-only stress tools
+local/
 
 # Do not keep built jars under source directories
 src/*.jar

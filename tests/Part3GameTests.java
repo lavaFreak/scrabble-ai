@@ -3,6 +3,8 @@
  *
  * File purpose: regression coverage for the Part 3 game backend.
  */
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +28,9 @@ public class Part3GameTests {
         testScrabbleGameEndsWhenBagIsEmptyAndNeitherPlayerCanMove();
         testScrabbleGameSnapshotReflectsCurrentState();
         testScrabbleGameAcceptsPlacementBufferMoves();
+        testScrabbleGameReportsWinnerSummary();
+        testScrabbleGameUsesPreEndgameTieBreak();
+        testGameLogWriterRecordsTurnAndWinnerSummary();
 
         System.out.println("All tests passed.");
     }
@@ -289,6 +294,74 @@ public class Part3GameTests {
         check("cat".equals(play.move().mainWord()), "Expected placement-buffer move to resolve to cat");
         check(game.board().isTile(2, 3) && game.board().tileAt(2, 3) == 't',
             "Expected game board to reflect buffered move");
+    }
+
+    private static void testScrabbleGameReportsWinnerSummary() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of(), new Random(9L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("qq")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("zz")),
+            true
+        );
+
+        game.passHumanTurn();
+
+        check("The game is tied at -20 points each.".equals(game.winnerSummary()),
+            "Expected tie summary when final and pre-endgame scores match");
+        check("The game is tied at -20 points each.".equals(game.snapshot().winnerSummary()),
+            "Expected snapshot to expose winner summary");
+    }
+
+    private static void testScrabbleGameUsesPreEndgameTieBreak() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabblePlayer human = new ScrabblePlayer("Human", true, RackState.fromTray("z"));
+        ScrabblePlayer computer = new ScrabblePlayer("Computer", false, RackState.fromTray("k"));
+        human.addScore(30);
+        computer.addScore(25);
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of(), new Random(10L)),
+            human,
+            computer,
+            true
+        );
+
+        game.passHumanTurn();
+
+        check("Human wins the tie-break 20 to 20.".equals(game.winnerSummary()),
+            "Expected pre-endgame score tie-break to choose the human player");
+    }
+
+    private static void testGameLogWriterRecordsTurnAndWinnerSummary() throws Exception {
+        Dictionary dictionary = dictionaryOf("cat");
+        ScrabbleGame game = new ScrabbleGame(
+            dictionary,
+            emptyPlainBoard(5),
+            new TileBag(List.of(), new Random(11L)),
+            new ScrabblePlayer("Human", true, RackState.fromTray("qq")),
+            new ScrabblePlayer("Computer", false, RackState.fromTray("zz")),
+            true
+        );
+
+        Path logPath = Files.createTempFile("scrabble-game-log", ".log");
+        try (GameLogWriter writer = new GameLogWriter(logPath, "test-session", "test-dictionary.txt")) {
+            writer.sync(game.snapshot());
+            game.passHumanTurn();
+            writer.sync(game.snapshot());
+        }
+
+        String logText = Files.readString(logPath);
+        check(logText.contains("SCRABBLE SESSION LOG"), "Expected log header");
+        check(logText.contains("== Initial State =="), "Expected initial state block");
+        check(logText.contains("== Turn 1 =="), "Expected turn block");
+        check(logText.contains("summary: Human passed. Game over."), "Expected pass summary in log");
+        check(logText.contains("== Game Over =="), "Expected game-over block");
+        check(logText.contains("winner: The game is tied at -20 points each."),
+            "Expected final winner summary in log");
     }
 
     private static Dictionary dictionaryOf(String... words) throws Exception {
