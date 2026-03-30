@@ -361,6 +361,7 @@ public class Scrabble extends Application {
         boolean exchangeSelectionAllowed = game.canExchangeCount(exchangeIndexes.size());
 
         exchangeModeButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn || !exchangeAvailable);
+        exchangeModeButton.setStyle(exchangeMode ? actionButtonStyle("#4f8a4f") : actionButtonStyle("#666666"));
         playMoveButton.setDisable(snapshot.isGameOver() || computerTurnRunning || !humanTurn || exchangeMode || !moveBuffered);
         clearButton.setDisable(
             snapshot.isGameOver() || computerTurnRunning || (!moveBuffered && !exchangeSelected && !selectionActive)
@@ -744,10 +745,10 @@ public class Scrabble extends Application {
         }
 
         return switch (baseBoard.get(row, col)) {
-            case "3." -> squareStyle("#e4a0a0");
-            case "2." -> squareStyle("#efc0c0");
-            case ".3" -> squareStyle("#9fc2de");
-            case ".2" -> squareStyle("#c7d9e8");
+            case "3." -> squareStyle("#e47c7c");
+            case "2." -> squareStyle("#f0b46a");
+            case ".3" -> squareStyle("#77b6e8");
+            case ".2" -> squareStyle("#9dcf74");
             default -> squareStyle("#ece8df");
         };
     }
@@ -763,10 +764,10 @@ public class Scrabble extends Application {
             return rackStyle("#c6c6c6", "#555555");
         }
         if (exchangeIndexes.contains(rackIndex)) {
-            return rackStyle("#8eb090", "#111111");
+            return rackStyle("#4f8a4f", "#ffffff");
         }
         if (Objects.equals(selectedRackIndex, rackIndex)) {
-            return rackStyle("#d2b55b", "#111111");
+            return rackStyle("#4f8a4f", "#ffffff");
         }
         if (!snapshot.isHumanTurn() || computerTurnRunning || snapshot.isGameOver()) {
             return rackStyle("#dddddd", "#666666");
