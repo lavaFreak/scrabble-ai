@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Fully resolved move information for the Part 3 game flow.
+ * File purpose: carry fully resolved move information for the Part 3 game flow.
  */
 import java.util.List;
 

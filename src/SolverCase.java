@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable Part 2 solver test case: one input board plus one tray.
+ * File purpose: represent one immutable Part 2 solver input case.
  */
 public class SolverCase {
     private final Board board;

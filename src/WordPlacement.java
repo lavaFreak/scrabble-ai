@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Coordinate span for a single formed word on the board.
+ * File purpose: describe the coordinate span of one formed word on the board.
  *
  * A placement is represented as either horizontal (fixed row, varying columns)
  * or vertical (fixed column, varying rows).

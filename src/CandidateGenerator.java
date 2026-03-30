@@ -312,6 +312,11 @@ public class CandidateGenerator {
 
     // Collects deduplicated candidates during generation.
     private interface CandidateCollector {
+        /**
+         * Records one generated candidate.
+         *
+         * @param candidate candidate to collect
+         */
         public void accept(MoveCandidate candidate);
     }
 

@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable snapshot of one completed game turn.
+ * File purpose: capture one immutable snapshot of a completed game turn.
  */
 public class TurnRecord {
     private final int number;

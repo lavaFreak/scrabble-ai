@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable anchor square for solver move generation.
+ * File purpose: represent one immutable solver anchor square.
  */
 public class AnchorSquare {
     private final int row;

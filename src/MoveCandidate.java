@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable solver-side move candidate.
+ * File purpose: represent one immutable solver-side move candidate.
  *
  * A candidate describes one proposed placement geometry and the newly added
  * tiles that would realize that placement on the board.

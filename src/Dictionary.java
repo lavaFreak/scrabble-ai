@@ -13,11 +13,11 @@ public class Dictionary {
     }
 
     /**
-     * Loads dictionary entries from file into a lowercase trie.
+     * Loads dictionary entries from a file or bundled resource into a lowercase trie.
      *
-     * @param dictionaryPath path to dictionary text file
+     * @param dictionaryPath path to dictionary text file or bundled resource
      * @return dictionary instance containing all non-empty lines
-     * @throws IOException if dictionary file cannot be read
+     * @throws IOException if the dictionary source cannot be read
      */
     public static Dictionary fromFile(String dictionaryPath) throws IOException {
         Trie trie = new Trie();

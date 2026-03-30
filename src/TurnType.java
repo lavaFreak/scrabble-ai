@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * High-level kind of turn taken during a Scrabble game.
+ * File purpose: enumerate the high-level kinds of recorded turns.
  */
 public enum TurnType {
     MOVE,

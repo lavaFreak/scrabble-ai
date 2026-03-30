@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable result of solving one board+tray case.
+ * File purpose: represent one immutable solver output.
  */
 public class SolverResult {
     private final MoveCandidate move;

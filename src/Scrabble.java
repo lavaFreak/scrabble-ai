@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * JavaFX entry point for the Part 3 Scrabble game.
+ * File purpose: launch and render the JavaFX Part 3 Scrabble UI.
  */
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -82,6 +82,11 @@ public class Scrabble extends Application {
         launch(args);
     }
 
+    /**
+     * Initializes the stage and shows the game window.
+     *
+     * @param stage primary JavaFX stage
+     */
     @Override
     public void start(Stage stage) {
         try {
@@ -103,6 +108,11 @@ public class Scrabble extends Application {
         refreshView();
     }
 
+    /**
+     * Closes any active game log before shutdown.
+     *
+     * @throws Exception if JavaFX shutdown handling fails
+     */
     @Override
     public void stop() throws Exception {
         if (gameLogWriter != null) {

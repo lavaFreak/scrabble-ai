@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable UI-facing snapshot of the current game state.
+ * File purpose: expose immutable UI-facing snapshots of the current game state.
  *
  * The view layer should read from this object instead of directly querying
  * mutable game state throughout the scene graph.

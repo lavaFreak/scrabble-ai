@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Immutable board view for scorer logic.
+ * File purpose: provide an immutable board view for scoring, legality, and UI state queries.
  *
  * Tokens preserve the input format for each square (multiplier or tile token),
  * while helper methods expose tile and multiplier semantics.

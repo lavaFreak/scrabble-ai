@@ -5,9 +5,14 @@
  * Use this class directly for lab-style trie operations or through Dictionary for solver lookups.
  */
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -102,7 +107,7 @@ public class Trie implements TrieInterface {
     }
 
     /**
-     * Loads and inserts each non-empty line from a file.
+     * Loads and inserts each non-empty line from a file or bundled resource.
      *
      * @param filename path to the file
      */
@@ -116,13 +121,13 @@ public class Trie implements TrieInterface {
     }
 
     /**
-     * Loads words from a file with checked I/O behavior for project code.
+     * Loads words from a file or bundled resource with checked I/O behavior for project code.
      *
-     * @param filename path to the file
-     * @throws IOException if the file cannot be read
+     * @param filename path to the file or classpath resource
+     * @throws IOException if the source cannot be read
      */
     public void loadFromFileOrThrow(String filename) throws IOException {
-        try (BufferedReader in = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader in = openReader(filename)) {
             String line;
             while ((line = in.readLine()) != null) {
                 insert(line);
@@ -209,6 +214,27 @@ public class Trie implements TrieInterface {
             collectWords(child, prefix, matches);
             prefix.deleteCharAt(prefix.length() - 1);
         }
+    }
+
+    // Opens a dictionary source from the filesystem first, then from bundled resources.
+    private BufferedReader openReader(String filename) throws IOException {
+        try {
+            Path path = Path.of(filename);
+            if (Files.exists(path)) {
+                return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+            }
+        } catch (InvalidPathException ignored) {
+            // Fall through to classpath lookup.
+        }
+
+        InputStream stream = Trie.class.getClassLoader().getResourceAsStream(filename);
+        if (stream == null && filename.startsWith("/")) {
+            stream = Trie.class.getClassLoader().getResourceAsStream(filename.substring(1));
+        }
+        if (stream == null) {
+            throw new IOException("unable to read dictionary source: " + filename);
+        }
+        return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
     }
 
     // Normalizes input to lowercase text while preserving the empty-string case.

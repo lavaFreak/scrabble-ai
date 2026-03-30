@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Shared standard Scrabble tile values.
+ * File purpose: provide shared standard Scrabble tile values.
  */
 public final class TileValues {
     private TileValues() {

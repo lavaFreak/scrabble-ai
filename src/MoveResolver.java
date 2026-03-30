@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Resolves a board transition into one validated, scored move.
+ * File purpose: resolve one board transition into a validated, scored play.
  *
  * This is the backend bridge between a UI-generated board proposal and the
  * existing legality/scoring pipeline from the scorer and solver work.

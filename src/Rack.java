@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Mutable rack model used during solver backtracking.
+ * File purpose: represent mutable rack counts during solver backtracking.
  */
 public class Rack {
     private final int[] counts = new int[26];

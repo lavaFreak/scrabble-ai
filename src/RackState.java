@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Mutable rack state for the Part 3 game flow.
+ * File purpose: represent mutable rack state for the Part 3 game flow.
  */
 import java.util.ArrayList;
 import java.util.List;

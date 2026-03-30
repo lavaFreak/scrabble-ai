@@ -1,7 +1,8 @@
 /**
  * Author: Garion
  *
- * Represents one tile placed by the current move.
+ * File purpose: represent one tile placed by the current move.
+ *
  * Use this class as the shared value type between extraction, legality, and scoring.
  */
 public class PlayedTile {

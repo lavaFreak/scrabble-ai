@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Appends one human-readable session log for a Scrabble match.
+ * File purpose: append human-readable Scrabble session logs for the UI and local stress tools.
  *
  * The logger writes the initial state, each completed turn, and the final
  * winner summary. It is designed to be shared by the JavaFX UI and local
@@ -123,6 +123,11 @@ public class GameLogWriter implements AutoCloseable {
         writer.flush();
     }
 
+    /**
+     * Closes the underlying log writer.
+     *
+     * @throws IOException if the file cannot be closed
+     */
     @Override
     public synchronized void close() throws IOException {
         writer.close();

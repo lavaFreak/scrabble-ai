@@ -1,15 +1,19 @@
 /**
  * Author: Garion
  *
- * Shared Part 3 game controller for a human-vs-computer Scrabble match.
+ * File purpose: own the mutable Part 3 match state and enforce game flow rules.
  *
  * This class owns the mutable match state and exposes UI-friendly operations
  * for human moves, passes, exchanges, computer turns, snapshots, and turn history.
  */
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
@@ -45,7 +49,7 @@ public class ScrabbleGame {
      * @param dictionary loaded game dictionary
      * @param random randomness source for the tile bag
      * @return initialized game
-     * @throws IOException if the standard board file cannot be read
+     * @throws IOException if the standard board source cannot be read
      */
     public static ScrabbleGame createStandardGame(Dictionary dictionary, Random random) throws IOException {
         if (dictionary == null) {
@@ -57,7 +61,7 @@ public class ScrabbleGame {
 
         BoardParser parser = new BoardParser();
         Board board;
-        try (BufferedReader reader = Files.newBufferedReader(STANDARD_BOARD_PATH)) {
+        try (BufferedReader reader = openBoardReader(STANDARD_BOARD_PATH.toString())) {
             board = parser.readBoard(reader);
         }
 
@@ -75,6 +79,27 @@ public class ScrabbleGame {
             new ScrabblePlayer("Computer", false, computerRack),
             true
         );
+    }
+
+    // Opens a board source from the filesystem first, then from bundled resources.
+    private static BufferedReader openBoardReader(String boardPath) throws IOException {
+        try {
+            Path path = Path.of(boardPath);
+            if (Files.exists(path)) {
+                return Files.newBufferedReader(path, StandardCharsets.UTF_8);
+            }
+        } catch (InvalidPathException ignored) {
+            // Fall through to classpath lookup.
+        }
+
+        InputStream stream = ScrabbleGame.class.getClassLoader().getResourceAsStream(boardPath);
+        if (stream == null && boardPath.startsWith("/")) {
+            stream = ScrabbleGame.class.getClassLoader().getResourceAsStream(boardPath.substring(1));
+        }
+        if (stream == null) {
+            throw new IOException("unable to read board source: " + boardPath);
+        }
+        return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
     }
 
     /**

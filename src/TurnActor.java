@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Identifies which player took a recorded turn.
+ * File purpose: identify which player took a recorded turn.
  */
 public enum TurnActor {
     HUMAN,

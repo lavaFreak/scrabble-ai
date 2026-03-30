@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * UI-facing buffer for one tentative human placement.
+ * File purpose: stage one tentative human placement before submitting it to the game.
  *
  * This lets the future JavaFX layer stage letter placement interactively
  * without mutating the real game board until the move is submitted.

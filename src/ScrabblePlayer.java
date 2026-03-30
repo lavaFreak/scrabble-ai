@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Mutable player state for the Part 3 game flow.
+ * File purpose: hold mutable player state for the Part 3 game flow.
  */
 public class ScrabblePlayer {
     private final String name;

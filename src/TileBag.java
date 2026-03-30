@@ -1,7 +1,7 @@
 /**
  * Author: Garion
  *
- * Mutable tile bag for the Part 3 game flow.
+ * File purpose: manage mutable tile-bag state for the Part 3 game flow.
  */
 import java.util.ArrayList;
 import java.util.Collections;
