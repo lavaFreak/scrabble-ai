@@ -44,6 +44,7 @@ public class Scrabble extends Application {
     private static final double RACK_TILE_WIDTH = 58.0;
     private static final double RACK_TILE_HEIGHT = 76.0;
     private static final String SESSION_TAG = "human-vs-computer";
+    private static final String UI_FONT = "System";
 
     private ScrabbleGame game;
     private GameLogWriter gameLogWriter;
@@ -125,17 +126,15 @@ public class Scrabble extends Application {
     private BorderPane buildRoot() {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(22));
-        root.setStyle(
-            "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #f8f2e7, #efe3cf);"
-        );
+        root.setStyle("-fx-background-color: #d7d7d7;");
 
         Label titleLabel = new Label("SCRABBLE");
-        titleLabel.setFont(Font.font("Palatino", FontWeight.BOLD, 34));
-        titleLabel.setTextFill(Color.web("#2f2419"));
+        titleLabel.setFont(Font.font(UI_FONT, FontWeight.BOLD, 28));
+        titleLabel.setTextFill(Color.web("#222222"));
 
         Label subtitleLabel = new Label("Human vs Computer");
-        subtitleLabel.setFont(Font.font("Palatino", FontWeight.SEMI_BOLD, 15));
-        subtitleLabel.setTextFill(Color.web("#6e5d47"));
+        subtitleLabel.setFont(Font.font(UI_FONT, 14));
+        subtitleLabel.setTextFill(Color.web("#333333"));
 
         VBox titleBox = new VBox(2, titleLabel, subtitleLabel);
 
@@ -161,23 +160,17 @@ public class Scrabble extends Application {
 
         StackPane boardPanel = new StackPane(boardGrid);
         boardPanel.setPadding(new Insets(16));
-        boardPanel.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.7);"
-                + "-fx-background-radius: 18;"
-                + "-fx-border-radius: 18;"
-                + "-fx-border-color: #cfbea0;"
-                + "-fx-border-width: 1;"
-        );
+        boardPanel.setStyle("-fx-background-color: #b8b8b8;");
 
         statusLabel = new Label();
         statusLabel.setWrapText(true);
-        statusLabel.setFont(Font.font("Georgia", 16));
-        statusLabel.setTextFill(Color.web("#3b2b20"));
+        statusLabel.setFont(Font.font(UI_FONT, 15));
+        statusLabel.setTextFill(Color.web("#222222"));
 
         interactionLabel = new Label();
         interactionLabel.setWrapText(true);
-        interactionLabel.setFont(Font.font("Georgia", 14));
-        interactionLabel.setTextFill(Color.web("#6f543e"));
+        interactionLabel.setFont(Font.font(UI_FONT, 14));
+        interactionLabel.setTextFill(Color.web("#333333"));
 
         VBox statusBox = new VBox(6, statusLabel, interactionLabel);
         statusBox.setPadding(new Insets(0, 4, 0, 4));
@@ -186,9 +179,9 @@ public class Scrabble extends Application {
         clearButton = createActionButton("Clear Staged", this::handleClearSelections);
         passButton = createActionButton("Pass", this::handlePassTurn);
         exchangeModeButton = new ToggleButton("Exchange Mode");
-        exchangeModeButton.setFont(Font.font("Georgia", FontWeight.SEMI_BOLD, 13));
+        exchangeModeButton.setFont(Font.font(UI_FONT, FontWeight.BOLD, 13));
         exchangeModeButton.setOnAction(event -> handleExchangeModeToggle());
-        exchangeModeButton.setStyle(actionButtonStyle("#5f7a6b"));
+        exchangeModeButton.setStyle(actionButtonStyle("#666666"));
 
         exchangeButton = createActionButton("Exchange Selected", this::handleExchange);
         computerTurnButton = createActionButton("Computer Turn", this::handleComputerTurnButton);
@@ -208,41 +201,30 @@ public class Scrabble extends Application {
         boardSection.setPrefWidth(780);
 
         Label rackTitle = new Label("Your Rack");
-        rackTitle.setFont(Font.font("Palatino", FontWeight.BOLD, 22));
-        rackTitle.setTextFill(Color.web("#2f2419"));
+        rackTitle.setFont(Font.font(UI_FONT, FontWeight.BOLD, 20));
+        rackTitle.setTextFill(Color.web("#222222"));
 
         rackPane = new FlowPane();
         rackPane.setHgap(10);
         rackPane.setVgap(10);
         rackPane.setAlignment(Pos.CENTER_LEFT);
         rackPane.setPadding(new Insets(12));
-        rackPane.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.72);"
-                + "-fx-background-radius: 16;"
-                + "-fx-border-radius: 16;"
-                + "-fx-border-color: #cfbea0;"
-                + "-fx-border-width: 1;"
-        );
+        rackPane.setStyle("-fx-background-color: #c6c6c6;");
 
         VBox rackSection = new VBox(10, rackTitle, rackPane);
 
         Label sideTitle = new Label("Match Panel");
-        sideTitle.setFont(Font.font("Palatino", FontWeight.BOLD, 22));
-        sideTitle.setTextFill(Color.web("#2f2419"));
+        sideTitle.setFont(Font.font(UI_FONT, FontWeight.BOLD, 20));
+        sideTitle.setTextFill(Color.web("#222222"));
 
         historyList = new ListView<>();
         historyList.setFocusTraversable(false);
         historyList.setPrefWidth(320);
-        historyList.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.75);"
-                + "-fx-border-color: #cfbea0;"
-                + "-fx-border-radius: 14;"
-                + "-fx-background-radius: 14;"
-        );
+        historyList.setStyle("-fx-background-color: #f3f3f3;");
 
         Label latestTitle = new Label("Computer Rack");
-        latestTitle.setFont(Font.font("Georgia", FontWeight.SEMI_BOLD, 14));
-        latestTitle.setTextFill(Color.web("#5e4a39"));
+        latestTitle.setFont(Font.font(UI_FONT, FontWeight.BOLD, 14));
+        latestTitle.setTextFill(Color.web("#222222"));
 
         VBox sidePanel = new VBox(
             12,
@@ -312,7 +294,7 @@ public class Scrabble extends Application {
                 label.setMouseTransparent(true);
                 label.setTextFill(boardCellTextColor(baseBoard, row, col));
                 label.setFont(Font.font(
-                    "Avenir Next",
+                    UI_FONT,
                     baseBoard.isTile(row, col) || isStaged(row, col) ? FontWeight.BOLD : FontWeight.SEMI_BOLD,
                     baseBoard.isTile(row, col) || isStaged(row, col) ? 16 : 11
                 ));
@@ -335,7 +317,7 @@ public class Scrabble extends Application {
             char tile = rack.charAt(index);
             int rackIndex = index;
             Button tileButton = new Button(rackButtonText(tile));
-            tileButton.setFont(Font.font("Georgia", FontWeight.BOLD, 15));
+            tileButton.setFont(Font.font(UI_FONT, FontWeight.BOLD, 15));
             tileButton.setPrefSize(RACK_TILE_WIDTH, RACK_TILE_HEIGHT);
             tileButton.setWrapText(true);
             tileButton.setDisable(computerTurnRunning || snapshot.isGameOver());
@@ -740,36 +722,33 @@ public class Scrabble extends Application {
     // Returns the text color for one square.
     private Color boardCellTextColor(Board baseBoard, int row, int col) {
         if (isStaged(row, col)) {
-            return Color.WHITE;
+            return Color.web("#111111");
         }
         if (baseBoard.isTile(row, col)) {
-            return Color.web("#2f2419");
+            return Color.web("#111111");
         }
 
         return switch (baseBoard.get(row, col)) {
-            case "3." -> Color.web("#7d2222");
-            case "2." -> Color.web("#b65d42");
-            case ".3" -> Color.web("#1e4b64");
-            case ".2" -> Color.web("#396882");
-            default -> Color.web("#7b6b56");
+            case "3.", "2.", ".3", ".2" -> Color.web("#222222");
+            default -> Color.web("#555555");
         };
     }
 
     // Returns the background style for one square.
     private String boardCellStyle(Board baseBoard, int row, int col) {
         if (isStaged(row, col)) {
-            return squareStyle("#cc7a2f", "#8f4c11");
+            return squareStyle("#d2b55b");
         }
         if (baseBoard.isTile(row, col)) {
-            return squareStyle("#e8cc95", "#7b5a36");
+            return squareStyle("#d8c48e");
         }
 
         return switch (baseBoard.get(row, col)) {
-            case "3." -> squareStyle("#f2c2b4", "#b05f4c");
-            case "2." -> squareStyle("#f4d8c7", "#c98d73");
-            case ".3" -> squareStyle("#bfd8e6", "#5b87a0");
-            case ".2" -> squareStyle("#d7e7ef", "#7aa0b5");
-            default -> squareStyle("#f4efe4", "#c8bca9");
+            case "3." -> squareStyle("#e4a0a0");
+            case "2." -> squareStyle("#efc0c0");
+            case ".3" -> squareStyle("#9fc2de");
+            case ".2" -> squareStyle("#c7d9e8");
+            default -> squareStyle("#ece8df");
         };
     }
 
@@ -781,43 +760,39 @@ public class Scrabble extends Application {
     // Returns the style for a rack tile button based on local UI state.
     private String rackButtonStyle(int rackIndex, char tile, GameSnapshot snapshot) {
         if (isRackIndexUsed(rackIndex)) {
-            return rackStyle("#d8c7ad", "#aa9679", "#8c7457");
+            return rackStyle("#c6c6c6", "#555555");
         }
         if (exchangeIndexes.contains(rackIndex)) {
-            return rackStyle("#6f8f7d", "#4f6d5c", "#ffffff");
+            return rackStyle("#8eb090", "#111111");
         }
         if (Objects.equals(selectedRackIndex, rackIndex)) {
-            return rackStyle("#cc7a2f", "#8f4c11", "#ffffff");
+            return rackStyle("#d2b55b", "#111111");
         }
         if (!snapshot.isHumanTurn() || computerTurnRunning || snapshot.isGameOver()) {
-            return rackStyle("#ebe0cb", "#bba98d", "#8a7457");
+            return rackStyle("#dddddd", "#666666");
         }
-        return rackStyle("#f2d7a6", "#8d6b3e", "#2f2419");
+        return rackStyle("#e0cfa3", "#111111");
     }
 
-    // Creates one rounded score/turn chip label.
+    // Creates the turn label.
     private Label createChipLabel() {
         Label label = createMetricLabel();
         label.setStyle(
-            "-fx-background-color: #5f7a6b;"
-                + "-fx-background-radius: 20;"
+            "-fx-background-color: #666666;"
                 + "-fx-padding: 8 14 8 14;"
                 + "-fx-text-fill: white;"
         );
         return label;
     }
 
-    // Creates one rounded metric label.
+    // Creates one metric label.
     private Label createMetricLabel() {
         Label label = new Label();
-        label.setFont(Font.font("Georgia", FontWeight.SEMI_BOLD, 14));
+        label.setFont(Font.font(UI_FONT, FontWeight.BOLD, 14));
         label.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.78);"
-                + "-fx-background-radius: 18;"
+            "-fx-background-color: #efefef;"
                 + "-fx-padding: 8 14 8 14;"
-                + "-fx-border-color: #cfbea0;"
-                + "-fx-border-radius: 18;"
-                + "-fx-text-fill: #3c2d20;"
+                + "-fx-text-fill: #222222;"
         );
         return label;
     }
@@ -825,52 +800,42 @@ public class Scrabble extends Application {
     // Creates one action button with shared styling.
     private Button createActionButton(String text, Runnable action) {
         Button button = new Button(text);
-        button.setFont(Font.font("Georgia", FontWeight.SEMI_BOLD, 13));
+        button.setFont(Font.font(UI_FONT, FontWeight.BOLD, 13));
         button.setOnAction(event -> action.run());
-        button.setStyle(actionButtonStyle("#7a5c45"));
+        button.setStyle(actionButtonStyle("#666666"));
         return button;
     }
 
     // Builds a small info card for the side panel.
     private VBox createInfoCard(String title, String body) {
         Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("Georgia", FontWeight.BOLD, 14));
-        titleLabel.setTextFill(Color.web("#5d4938"));
+        titleLabel.setFont(Font.font(UI_FONT, FontWeight.BOLD, 14));
+        titleLabel.setTextFill(Color.web("#222222"));
 
         VBox box = new VBox(6, titleLabel);
         if (body != null) {
             Label bodyLabel = new Label(body);
             bodyLabel.setWrapText(true);
-            bodyLabel.setFont(Font.font("Georgia", 13));
-            bodyLabel.setTextFill(Color.web("#6f5a47"));
+            bodyLabel.setFont(Font.font(UI_FONT, 13));
+            bodyLabel.setTextFill(Color.web("#333333"));
             box.getChildren().add(bodyLabel);
         }
         box.setPadding(new Insets(12));
-        box.setStyle(
-            "-fx-background-color: rgba(255,255,255,0.75);"
-                + "-fx-background-radius: 16;"
-                + "-fx-border-radius: 16;"
-                + "-fx-border-color: #cfbea0;"
-        );
+        box.setStyle("-fx-background-color: #efefef;");
         return box;
     }
 
     // Returns a compact square style string.
-    private String squareStyle(String background, String border) {
-        return "-fx-background-color: " + background + ";"
-            + "-fx-background-radius: 10;"
-            + "-fx-border-radius: 10;"
-            + "-fx-border-color: " + border + ";"
-            + "-fx-border-width: 1.2;";
+    private String squareStyle(String background) {
+        return "-fx-background-color: " + background + ";";
     }
 
     // Returns a rack tile style string.
-    private String rackStyle(String background, String border, String textColor) {
+    private String rackStyle(String background, String textColor) {
         return "-fx-background-color: " + background + ";"
-            + "-fx-background-radius: 14;"
-            + "-fx-border-radius: 14;"
-            + "-fx-border-color: " + border + ";"
-            + "-fx-border-width: 1.2;"
+            + "-fx-background-radius: 0;"
+            + "-fx-border-radius: 0;"
+            + "-fx-border-color: transparent;"
             + "-fx-text-fill: " + textColor + ";";
     }
 
@@ -878,7 +843,9 @@ public class Scrabble extends Application {
     private String actionButtonStyle(String background) {
         return "-fx-background-color: " + background + ";"
             + "-fx-text-fill: white;"
-            + "-fx-background-radius: 16;"
+            + "-fx-background-radius: 0;"
+            + "-fx-border-radius: 0;"
+            + "-fx-border-color: transparent;"
             + "-fx-padding: 10 16 10 16;";
     }
 
