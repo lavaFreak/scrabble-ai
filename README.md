@@ -1,26 +1,35 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/pmus8r2C)
+# Scrabble AI
 
-# Project 3: Scrabble
-
-This repository contains the shared code for CS 351 Project 3:
-- `Scorechecker` for the Part 1 scorer
-- `Solver` for the Part 2 highest-scoring move finder
-- the Part 3 game backend that the JavaFX UI will sit on
+A Java Scrabble project that combines a playable JavaFX interface, a
+highest-scoring move solver, shared backend game logic, and large self-play
+regression runs. The codebase grew from a sequence of course milestones and was
+consolidated into one repository so the scoring engine, solver, UI, and test
+infrastructure could evolve together.
 
 ## Current Status
-- Part 1 scorer is implemented and packaged as [Scorechecker.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Scorechecker.jar).
-- Part 2 solver is implemented and packaged as [Solver.jar](/Users/garion/UNM/JavaFX/CS351/Scrabble/Solver.jar).
-- Part 3 backend is implemented in shared model/controller classes such as [ScrabbleGame.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/ScrabbleGame.java), [MoveResolver.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/MoveResolver.java), [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java), and [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java).
-- The JavaFX game shell is implemented in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) and currently supports board rendering, rack interaction, passes, exchanges, blank-tile letter selection, computer turns, and turn-history display.
+- A scorer validates and scores candidate moves against configurable dictionaries.
+- A solver computes highest-scoring moves for a given board state and rack.
+- The backend game model handles legality checking, move application, rack state,
+  turn history, exchanges, passes, and endgame scoring.
+- The JavaFX shell supports board rendering, rack interaction, blank-tile
+  handling, computer turns, and turn-history display.
 - The current backend has also been stress-tested with large solver-vs-solver self-play batches, including a 1000-game run on the default dictionary and 500-game runs on constrained edge-case dictionaries.
 
 ## Project Layout
-- Dictionaries live under [Resources/dictionaries](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/dictionaries).
-- Board and tile configuration files live under [Resources/config](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/config).
-- Example scorer and solver inputs/outputs live under [Resources/examples](/Users/garion/UNM/JavaFX/CS351/Scrabble/Resources/examples).
-- The current architecture snapshot is documented in [scrabble-architecture.drawio](/Users/garion/UNM/JavaFX/CS351/Scrabble/docs/scrabble-architecture.drawio).
+- `src/`
+  Core game, solver, parsing, and UI classes
+- `tests/`
+  Regression suites for scoring, solver, and game behavior
+- `Resources/dictionaries/`
+  Dictionaries used by the scorer, solver, and UI
+- `Resources/config/`
+  Board and tile configuration files
+- `Resources/examples/`
+  Example scorer and solver input/output cases
+- `local/`
+  Self-play harness for larger regression runs
 
-## Scorer And Solver
+## Scorer and Solver
 Both console programs read repeated cases from standard input until EOF.
 
 Run the scorer:
@@ -51,7 +60,7 @@ ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\
 
 The solver keeps the first highest-scoring move it encounters when scores tie, which is allowed by the prompt.
 
-## Part 3 Backend
+## Backend Highlights
 The current game backend supports:
 - human and computer players with independent racks and scores
 - a mutable tile bag with standard Scrabble tile frequencies
@@ -63,7 +72,8 @@ The current game backend supports:
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
 
 ## Self-Play Stress Testing
-There is also a local-only solver-vs-solver harness in [local/ScrabbleSelfPlay.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/local/ScrabbleSelfPlay.java) for long regression runs and edge-case audits.
+There is also a local-only solver-vs-solver harness in `local/ScrabbleSelfPlay.java`
+for long regression runs and edge-case audits.
 
 Compile the backend, tests, and harness without the JavaFX shell:
 
@@ -96,12 +106,11 @@ You can also pass a dictionary path explicitly:
 java -cp build/classes Scrabble Resources/dictionaries/sowpods.txt
 ```
 
-The current Part 3 implementation intentionally lets the human player go first, which the prompt allows as long as that choice is documented.
-
 Each JavaFX game session also writes a move log under `game-logs/`. That directory is ignored by git so generated logs stay local.
 
 ## Scrabble UI Dictionary Behavior
-The JavaFX game in [Scrabble.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/Scrabble.java) accepts an optional dictionary path as its first command-line argument.
+The JavaFX game in `Scrabble.java` accepts an optional dictionary path as its
+first command-line argument.
 
 If no argument is provided, it defaults to:
 
@@ -141,3 +150,15 @@ java -cp build/selfplay ScorecheckerSoFarTests
 java -cp build/selfplay Part2FoundationTests
 java -cp build/selfplay Part3GameTests
 ```
+
+## Why It Is A Strong Portfolio Project
+
+This project demonstrates several things at once:
+
+- algorithmic search and scoring logic
+- object-oriented game-state modeling
+- UI and interaction design in JavaFX
+- regression testing and high-volume self-play validation
+
+It works well as an interview project because the solver, backend architecture,
+and testing strategy are all concrete and easy to discuss.
