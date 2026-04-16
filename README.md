@@ -2,9 +2,9 @@
 
 A Java Scrabble project that combines a playable JavaFX interface, a
 highest-scoring move solver, shared backend game logic, and large self-play
-regression runs. The codebase grew from a sequence of course milestones and was
-consolidated into one repository so the scoring engine, solver, UI, and test
-infrastructure could evolve together.
+regression runs. The repository brings the scoring engine, solver, UI, and
+test infrastructure together in one codebase so the game logic can evolve
+coherently across interactive play and automated validation.
 
 ## Current Status
 - A scorer validates and scores candidate moves against configurable dictionaries.
@@ -28,6 +28,13 @@ infrastructure could evolve together.
   Example scorer and solver input/output cases
 - `local/`
   Self-play harness for larger regression runs
+
+## Quick Start
+
+If you just want to try the console tools, the repository includes prebuilt
+`Scorechecker.jar`, `Solver.jar`, and `Scrabble.jar` artifacts at the root.
+The console tools work with a standard JDK; the JavaFX UI requires a
+JavaFX-enabled runtime.
 
 ## Scorer and Solver
 Both console programs read repeated cases from standard input until EOF.
@@ -58,16 +65,17 @@ java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/exa
 ruby -e 'expected = File.read("Resources/examples/example_output.txt").gsub("\r\n", "\n"); actual = File.read("/tmp/solver-output.txt").gsub("\r\n", "\n"); abort("output mismatch") unless expected == actual'
 ```
 
-The solver keeps the first highest-scoring move it encounters when scores tie, which is allowed by the prompt.
+The solver keeps the first highest-scoring move it encounters when scores tie,
+which makes repeated runs deterministic.
 
 ## Backend Highlights
 The current game backend supports:
 - human and computer players with independent racks and scores
 - a mutable tile bag with standard Scrabble tile frequencies
 - solver-driven computer turns
-- validated human moves through board transitions or a [PlacementBuffer.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/PlacementBuffer.java)
+- validated human moves through board transitions or `PlacementBuffer.java`
 - passes, exchanges, turn history, the standard six-consecutive-scoreless-turn ending, and endgame leave scoring
-- immutable UI snapshots through [GameSnapshot.java](/Users/garion/UNM/JavaFX/CS351/Scrabble/src/GameSnapshot.java)
+- immutable UI snapshots through `GameSnapshot.java`
 
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
 
@@ -93,7 +101,9 @@ Recent validation runs completed cleanly at these sizes:
 - `500` games with `local/tiny_dictionary.txt`
 
 ## Scrabble UI
-Run the JavaFX game from IntelliJ with the `zulu-25` SDK, or from the terminal after exporting `JAVA_HOME` to the Zulu FX JDK and compiling the sources:
+Run the JavaFX game from IntelliJ with a JavaFX-enabled JDK, or from the
+terminal after exporting `JAVA_HOME` to a JavaFX-enabled installation and
+compiling the sources:
 
 ```sh
 javac -d build/classes src/*.java tests/*.java
@@ -121,7 +131,8 @@ Resources/dictionaries/dictionary.txt
 If you want to launch the UI with a different dictionary, pass the path explicitly when running `Scrabble`.
 
 ## Java Setup
-IntelliJ is configured to use the `zulu-25` JDK, which includes JavaFX modules.
+The desktop UI needs a JavaFX-enabled JDK. One convenient option is a Zulu FX
+distribution, but any equivalent JavaFX-enabled setup works.
 
 If you want terminal `java` and `javac` to use the same JDK as the IDE, use:
 
@@ -130,7 +141,8 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-25.jdk/Contents/Home
 export PATH="$JAVA_HOME/bin:$PATH"
 ```
 
-This matters for Part 3, because plain shell `javac` against a non-FX JDK will fail on `javafx.*` imports.
+Plain shell `javac` against a non-JavaFX JDK will fail on `javafx.*` imports,
+so the UI should be built with a JavaFX-enabled runtime.
 
 ## Tests
 Compile and run the current regression suites from the repository root:

@@ -1,19 +1,20 @@
-# Scrabble testing files
+# Scrabble Example Inputs and Resources
 
-This directory contains some dictionaries, boards, and tiles distributions that you may find useful, as well as some example input/output files for the scorechecker and solver programs.
+This directory contains sample dictionaries, board and tile configuration
+files, and example input/output pairs for the scorechecker and solver tools.
 
-## Word lists
+## Word Lists
 
 * `sowpods.txt`
-  Big scrabble word list
+  Large Scrabble word list
 * `enable.txt`
-  Words with friends list
+  ENABLE word list
 * `animals.txt`
-  Smaller file for testing
+  Smaller file for focused testing
 
-## Blank boards and tile frequency/point information for various games
+## Board and Tile Configuration Files
 
-### Standard scrabble
+### Standard Scrabble
 * `scrabble_board.txt`
 * `scrabble_tiles.txt`
 
@@ -21,23 +22,23 @@ This directory contains some dictionaries, boards, and tiles distributions that 
 * `superscrabble_board.txt`
 * `superscrabble_tiles.txt`
 
-### Words with friends
+### Words With Friends
 * `wordswithfriends_board.txt`
 * `wordswithfriends_tiles.txt`
 
-### Small board for testing
+### Small Board for Testing
 * `small_board.txt`
 
-## Validate and Score tests
+## Scoring Validation Cases
 
-### Some illegal moves
+### Illegal moves
 * `illegal.txt`
-### Some legal moves for scoring
+### Legal moves for scoring
 * `score.txt`
-### Mixed tests of incompatible, illegal, and legal moves
+### Mixed compatibility, legality, and scoring cases
 * `example_score_input.txt`
 * `example_score_output.txt`
 
-## Solver test files
+## Solver Example Files
 * `example_input.txt`
 * `example_output.txt`
