@@ -163,14 +163,17 @@ java -cp build/selfplay Part2FoundationTests
 java -cp build/selfplay Part3GameTests
 ```
 
-## Why It Is A Strong Portfolio Project
+## What This Project Demonstrates
 
-This project demonstrates several things at once:
+This project pulls together several different kinds of engineering work:
 
 - algorithmic search and scoring logic
 - object-oriented game-state modeling
 - UI and interaction design in JavaFX
 - regression testing and high-volume self-play validation
 
-It works well as an interview project because the solver, backend architecture,
-and testing strategy are all concrete and easy to discuss.
+What makes it especially useful to discuss is that the solver, backend
+architecture, and testing strategy all connect to each other. It is not just a
+playable game UI or just a search algorithm in isolation; it is a project where
+game rules, computer move generation, and validation infrastructure all had to
+work together cleanly.
