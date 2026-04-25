@@ -1,16 +1,8 @@
 # Scrabble Example Inputs and Resources
 
-This directory contains sample dictionaries, board and tile configuration
-files, and example input/output pairs for the scorechecker and solver tools.
-
-## Word Lists
-
-* `sowpods.txt`
-  Large Scrabble word list
-* `enable.txt`
-  ENABLE word list
-* `animals.txt`
-  Smaller file for focused testing
+This directory contains example input/output pairs for the scorechecker and
+solver tools, plus references to the board and tile configuration files used by
+the main project.
 
 ## Board and Tile Configuration Files
 
@@ -21,10 +13,6 @@ files, and example input/output pairs for the scorechecker and solver tools.
 ### Super Scrabble
 * `superscrabble_board.txt`
 * `superscrabble_tiles.txt`
-
-### Words With Friends
-* `wordswithfriends_board.txt`
-* `wordswithfriends_tiles.txt`
 
 ### Small Board for Testing
 * `small_board.txt`

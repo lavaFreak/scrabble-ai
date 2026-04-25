@@ -56,7 +56,6 @@ build_submission_jars.sh
 
 # Generated grader/test outputs
 test_results/
-tests/
 
 # Local-only stress tools
 local/

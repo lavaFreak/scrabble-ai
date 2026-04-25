@@ -6,6 +6,11 @@ regression runs. The repository brings the scoring engine, solver, UI, and
 test infrastructure together in one codebase so the game logic can evolve
 coherently across interactive play and automated validation.
 
+## Start Here
+- If you want to review the project quickly, start with [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
+- If you want to contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md).
+- If you just want to run the scorer, solver, or UI, use the quick-start commands below.
+
 ## Current Status
 - A scorer validates and scores candidate moves against configurable dictionaries.
 - A solver computes highest-scoring moves for a given board state and rack.
@@ -19,15 +24,23 @@ coherently across interactive play and automated validation.
 - `src/`
   Core game, solver, parsing, and UI classes
 - `tests/`
-  Regression suites for scoring, solver, and game behavior
+  Public regression suites for scorer behavior, solver foundations, and game-state logic
 - `Resources/dictionaries/`
   Dictionaries used by the scorer, solver, and UI
 - `Resources/config/`
   Board and tile configuration files
 - `Resources/examples/`
   Example scorer and solver input/output cases
-- `local/`
-  Self-play harness for larger regression runs
+- `docs/`
+  Architecture and review-oriented documentation
+- root `.jar` files
+  Prebuilt scorer, solver, and UI artifacts for quick evaluation
+
+## Architecture Snapshot
+
+The repository includes a high-level architecture diagram:
+
+![Scrabble architecture](docs/scrabble-architecture.jpg)
 
 ## Quick Start
 
@@ -79,34 +92,13 @@ The current game backend supports:
 
 This is intended to let the JavaFX layer focus on rendering and interaction instead of re-implementing game rules.
 
-## Self-Play Stress Testing
-There is also a local-only solver-vs-solver harness in `local/ScrabbleSelfPlay.java`
-for long regression runs and edge-case audits.
-
-Compile the backend, tests, and harness without the JavaFX shell:
-
-```sh
-javac -d build/selfplay $(find src -name '*.java' ! -name 'Scrabble.java' -print) $(find tests -name '*.java' -print) local/ScrabbleSelfPlay.java
-```
-
-Run a self-play batch:
-
-```sh
-java -cp build/selfplay ScrabbleSelfPlay 100 Resources/dictionaries/dictionary.txt 50000
-```
-
-Recent validation runs completed cleanly at these sizes:
-- `1000` games with `Resources/dictionaries/dictionary.txt`
-- `500` games with `Resources/dictionaries/animals.txt`
-- `500` games with `local/tiny_dictionary.txt`
-
 ## Scrabble UI
 Run the JavaFX game from IntelliJ with a JavaFX-enabled JDK, or from the
 terminal after exporting `JAVA_HOME` to a JavaFX-enabled installation and
 compiling the sources:
 
 ```sh
-javac -d build/classes src/*.java tests/*.java
+javac -d build/classes src/*.java
 java -cp build/classes Scrabble
 ```
 
@@ -144,36 +136,31 @@ export PATH="$JAVA_HOME/bin:$PATH"
 Plain shell `javac` against a non-JavaFX JDK will fail on `javafx.*` imports,
 so the UI should be built with a JavaFX-enabled runtime.
 
-## Tests
-Compile and run the current regression suites from the repository root:
+## Validation
+The public repository snapshot includes both runnable regression suites and the
+bundled scorer/solver example cases.
+
+Compile the current source tree from the repository root:
 
 ```sh
-javac -d build/classes src/*.java tests/*.java
+javac -d build/classes $(find src -name '*.java' ! -name 'Scrabble.java' -print) tests/*.java
+```
+
+Run the public regression suites:
+
+```sh
 java -cp build/classes ScorecheckerSoFarTests
 java -cp build/classes Part2FoundationTests
 java -cp build/classes Part3GameTests
 ```
 
-For backend-only regression and stress runs without compiling JavaFX:
+Run the scorer and solver against the example files:
 
 ```sh
-javac -d build/selfplay $(find src -name '*.java' ! -name 'Scrabble.java' -print) $(find tests -name '*.java' -print) local/ScrabbleSelfPlay.java
-java -cp build/selfplay ScorecheckerSoFarTests
-java -cp build/selfplay Part2FoundationTests
-java -cp build/selfplay Part3GameTests
+java -jar Scorechecker.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_score_input.txt
+java -jar Solver.jar Resources/dictionaries/sowpods.txt < Resources/examples/example_input.txt
 ```
 
-## What This Project Demonstrates
-
-This project pulls together several different kinds of engineering work:
-
-- algorithmic search and scoring logic
-- object-oriented game-state modeling
-- UI and interaction design in JavaFX
-- regression testing and high-volume self-play validation
-
-What makes it especially useful to discuss is that the solver, backend
-architecture, and testing strategy all connect to each other. It is not just a
-playable game UI or just a search algorithm in isolation; it is a project where
-game rules, computer move generation, and validation infrastructure all had to
-work together cleanly.
+These regression suites exercise the scorer, solver, and game backend. The
+JavaFX UI still needs a JavaFX-enabled JDK and is covered separately by the UI
+run instructions above.
