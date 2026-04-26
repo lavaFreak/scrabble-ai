@@ -7,9 +7,9 @@ test infrastructure together in one codebase so the game logic can evolve
 coherently across interactive play and automated validation.
 
 ## Start Here
-- If you want to review the project quickly, start with [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
-- If you want to contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md).
-- If you just want to run the scorer, solver, or UI, use the quick-start commands below.
+- For a high-level codebase walkthrough, start with [docs/REVIEW_GUIDE.md](docs/REVIEW_GUIDE.md).
+- For contribution workflow and validation steps, start with [CONTRIBUTING.md](CONTRIBUTING.md).
+- To run the scorer, solver, or UI, use the quick-start commands below.
 
 ## Current Status
 - A scorer validates and scores candidate moves against configurable dictionaries.
@@ -137,7 +137,7 @@ Plain shell `javac` against a non-JavaFX JDK will fail on `javafx.*` imports,
 so the UI should be built with a JavaFX-enabled runtime.
 
 ## Validation
-The public repository snapshot includes both runnable regression suites and the
+The repository includes both runnable regression suites and the
 bundled scorer/solver example cases.
 
 Compile the current source tree from the repository root:

@@ -1,6 +1,6 @@
 # Review Guide
 
-This guide is meant for someone skimming the project for an interview, code review, or quick technical walkthrough.
+This guide is for a quick technical walkthrough of the codebase.
 
 ## Fast Review Path
 
@@ -31,10 +31,10 @@ That path shows the project at three levels: overall purpose, core game model, s
 - root `.jar` files
   Prebuilt artifacts that make quick review easier
 
-## Good Interview Discussion Points
+## Discussion Points
 - how solver logic and game-state rules share one backend instead of drifting apart
 - how legality checking, move application, and scoring stay synchronized
-- how the project uses both focused regression suites and bundled example cases in the public repo snapshot
+- how the project uses both focused regression suites and bundled example cases
 - what tradeoffs come from keeping the UI thin and the backend stateful
 
 ## Commands Worth Running
